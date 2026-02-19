@@ -56,11 +56,14 @@ func xcIcon(xc string) string {
 // FormatText writes a pretty text forecast to the writer.
 func FormatText(w io.Writer, f *SiteForecast, tc *TuningConfig) {
 	fmt.Fprintf(w, "\n"+ForecastTitle+"\n", f.Site.Name)
-	fmt.Fprintf(w, "   %s facing | Ideal: %s | Elev: %dm\n",
+	fmt.Fprintf(w, "   %s %s | %s %s | %s %dm\n",
 		DegreesToCompass(float64(f.Site.Aspect)),
+		LabelFacing,
+		LabelIdeal,
 		windRangeStr(f.Site.WindMin, f.Site.WindMax, f.Site.BestDir),
+		LabelElev,
 		f.Site.Elevation)
-	fmt.Fprintf(w, "   Generated: %s\n", f.Generated.Format("Mon 2 Jan 2006 15:04 MST"))
+	fmt.Fprintf(w, "   %s %s\n", LabelGenerated, f.Generated.Format("Mon 2 Jan 2006 15:04 MST"))
 
 	for i, day := range f.DetailedDays {
 		label := LabelToday
