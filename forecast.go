@@ -60,8 +60,7 @@ func GenerateForecast(site Site, opts ForecastOptions) (*SiteForecast, error) {
 			for _, idx := range indices {
 				h := &hourlyData[idx]
 				lt := h.Time.In(loc)
-				hour := lt.Hour()
-				if hour >= 8 && hour <= 18 {
+				if h.IsDay == 1 {
 					m := ComputeHourlyMetrics(h, site, tc)
 					m.Time = lt
 					df.Hours = append(df.Hours, m)
@@ -79,8 +78,7 @@ func GenerateForecast(site Site, opts ForecastOptions) (*SiteForecast, error) {
 			for _, idx := range indices {
 				h := &hourlyData[idx]
 				lt := h.Time.In(loc)
-				hour := lt.Hour()
-				if hour >= 8 && hour <= 18 {
+				if h.IsDay == 1 {
 					m := ComputeHourlyMetrics(h, site, tc)
 					m.Time = lt
 					dayMetrics = append(dayMetrics, m)
