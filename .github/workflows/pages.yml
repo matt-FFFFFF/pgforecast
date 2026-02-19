@@ -43,7 +43,7 @@ jobs:
           for f in web/js/*.js; do
             npx terser "$f" -o "$f" --compress --mangle reserved='["selectSite","toggleTuning","closeTuning","openTuning","onTuningInput","applyTuning","resetTuning","exportTuning","importTuning"]'
           done
-          node -e "const c=require('clean-css'),f=require('fs');const o=new c().minify(f.readFileSync('web/css/style.css','utf8'));f.writeFileSync('web/css/style.css',o.styles)"
+          node -e "const c=require('clean-css'),f=require('fs');const o=new c().minify(f.readFileSync('web/css/style.css','utf8'));if(o.errors.length){console.error(o.errors);process.exit(1)}f.writeFileSync('web/css/style.css',o.styles)"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
