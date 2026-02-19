@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>🪂 PG Forecast — Paragliding Weather</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="css/style.css" />
@@ -10,6 +10,7 @@
 <body>
 
 <div class="header">
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Toggle site list">☰</button>
   <h1><span>🪂</span> PG Forecast</h1>
   <div id="wasmStatus" style="font-size: 0.8rem; color: var(--muted);"><span class="spinner"></span> Loading…</div>
   <div class="header-actions">
@@ -22,7 +23,8 @@
 </div>
 
 <div class="layout">
-  <div class="sidebar">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  <div class="sidebar" id="sidebar">
     <div class="sidebar-header">Sites</div>
     <div id="siteList"></div>
   </div>

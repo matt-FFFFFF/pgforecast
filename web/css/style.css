@@ -29,13 +29,27 @@ body {
 
 .header {
   padding: 0.75rem 1.5rem;
+  padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
   display: flex;
   align-items: center;
   gap: 1rem;
   border-bottom: 1px solid var(--border);
-  height: 50px;
+  min-height: 50px;
   z-index: 10;
   position: relative;
+}
+
+/* --- Hamburger button (mobile only) --- */
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  line-height: 1;
 }
 
 .header h1 {
@@ -80,6 +94,12 @@ body {
 .layout {
   display: flex;
   height: calc(100vh - 50px);
+}
+
+/* --- Sidebar overlay (mobile) --- */
+
+.sidebar-overlay {
+  display: none;
 }
 
 /* --- Sidebar --- */
@@ -502,16 +522,47 @@ body {
 /* --- Responsive --- */
 
 @media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
   .layout {
     flex-direction: column;
+    position: relative;
   }
 
   .sidebar {
-    width: 100%;
-    height: auto;
-    max-height: 160px;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    max-height: none;
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+  }
+
+  .sidebar-overlay.open {
+    display: block;
   }
 
   .forecast-wrapper.open {

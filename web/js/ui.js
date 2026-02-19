@@ -6,6 +6,34 @@
  */
 
 /**
+ * Check if the current viewport is mobile-sized.
+ * @returns {boolean} True if viewport width ≤ 768px.
+ */
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
+/**
+ * Toggle the mobile sidebar open/closed.
+ */
+function toggleSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+/**
+ * Close the mobile sidebar.
+ */
+function closeSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+}
+
+/**
  * Convert a wind direction in degrees to a 16-point compass string.
  * @param {number} degrees - Wind direction (0–360).
  * @returns {string} Compass direction (e.g. "NNW").
@@ -250,6 +278,19 @@ async function selectSite(name) {
   if (!site) return;
 
   map.flyTo([site.lat, site.lon], 12, { duration: 0.5 });
+
+  // On mobile, offset the map so the marker sits in the top 25% of the viewport,
+  // keeping it visible above the forecast panel.
+  if (isMobile()) {
+    closeSidebar();
+    map.once('moveend', function () {
+      var mapSize = map.getSize();
+      // Shift marker from center (50%) to top 25% => move up by 25% of map height
+      var offsetY = -Math.round(mapSize.y * 0.25);
+      map.panBy([0, offsetY], { animate: true, duration: 0.3 });
+    });
+  }
+
   showForecastPanel();
 
   var panel = document.getElementById('forecastPanel');
