@@ -34,6 +34,16 @@ jobs:
       - name: Build WASM
         run: tinygo build -o web/pgforecast.wasm -target wasm -no-debug ./wasm/
 
+      - name: Minify assets
+        run: |
+          npx html-minifier-terser \
+            --collapse-whitespace --remove-comments --minify-css true --minify-js true \
+            -o web/index.html web/index.html
+          for f in web/js/*.js; do
+            npx terser "$f" -o "$f" --compress --mangle reserved='["selectSite","toggleTuning","closeTuning","openTuning","onTuningInput","applyTuning","resetTuning","exportTuning","importTuning"]'
+          done
+          npx clean-css-cli -o web/css/style.css web/css/style.css
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
