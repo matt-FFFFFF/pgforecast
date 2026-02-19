@@ -1,5 +1,64 @@
 package pgforecast
 
+// WindStrengthTier defines display properties for a wind speed range.
+type WindStrengthTier struct {
+	RGB   string `mapstructure:"rgb" yaml:"rgb" json:"rgb"`
+	Label string `mapstructure:"label" yaml:"label" json:"label"`
+	Icon  string `mapstructure:"icon" yaml:"icon" json:"icon"`
+}
+
+// GradientDisplay defines display properties for a gradient severity level.
+type GradientDisplay struct {
+	RGB  string `mapstructure:"rgb" yaml:"rgb" json:"rgb"`
+	Icon string `mapstructure:"icon" yaml:"icon" json:"icon"`
+}
+
+// GradientIcon returns the display icon for a gradient severity level.
+func (tc *TuningConfig) GradientIcon(gradient string) string {
+	switch gradient {
+	case GradientLow:
+		return tc.Display.Gradient.Low.Icon
+	case GradientMedium:
+		return tc.Display.Gradient.Medium.Icon
+	default:
+		return tc.Display.Gradient.High.Icon
+	}
+}
+
+// WindStrengthTierFor returns the display tier for a given wind speed.
+// Thresholds derive from the wind tuning values (ideal_min, ideal_max, acceptable_max, dangerous_max).
+func (tc *TuningConfig) WindStrengthTierFor(speed float64) WindStrengthTier {
+	switch {
+	case speed < tc.Wind.IdealMin:
+		return tc.Display.WindStrength.Light
+	case speed <= tc.Wind.IdealMax:
+		return tc.Display.WindStrength.Moderate
+	case speed <= tc.Wind.AcceptableMax:
+		return tc.Display.WindStrength.Fresh
+	case speed <= tc.Wind.DangerousMax:
+		return tc.Display.WindStrength.Strong
+	default:
+		return tc.Display.WindStrength.VeryStrong
+	}
+}
+
+// DisplayConfig holds all display-related configuration (colours, icons, labels).
+type DisplayConfig struct {
+	WindStrength struct {
+		Light      WindStrengthTier `mapstructure:"light" yaml:"light" json:"light"`
+		Moderate   WindStrengthTier `mapstructure:"moderate" yaml:"moderate" json:"moderate"`
+		Fresh      WindStrengthTier `mapstructure:"fresh" yaml:"fresh" json:"fresh"`
+		Strong     WindStrengthTier `mapstructure:"strong" yaml:"strong" json:"strong"`
+		VeryStrong WindStrengthTier `mapstructure:"very_strong" yaml:"very_strong" json:"very_strong"`
+	} `mapstructure:"wind_strength" yaml:"wind_strength" json:"wind_strength"`
+
+	Gradient struct {
+		Low    GradientDisplay `mapstructure:"low" yaml:"low" json:"low"`
+		Medium GradientDisplay `mapstructure:"medium" yaml:"medium" json:"medium"`
+		High   GradientDisplay `mapstructure:"high" yaml:"high" json:"high"`
+	} `mapstructure:"gradient" yaml:"gradient" json:"gradient"`
+}
+
 // TuningConfig holds all tunable parameters for the forecast engine.
 type TuningConfig struct {
 	Wind struct {
@@ -55,6 +114,8 @@ type TuningConfig struct {
 		CAPEBonus           float64 `mapstructure:"cape_bonus" yaml:"cape_bonus" json:"cape_bonus"`
 		ThermalStrongBonus  float64 `mapstructure:"thermal_strong_bonus" yaml:"thermal_strong_bonus" json:"thermal_strong_bonus"`
 	} `mapstructure:"scoring" yaml:"scoring" json:"scoring"`
+
+	Display DisplayConfig `mapstructure:"display" yaml:"display" json:"display"`
 
 	XC struct {
 		MinCloudbaseFt  int     `mapstructure:"min_cloudbase_ft" yaml:"min_cloudbase_ft" json:"min_cloudbase_ft"`
@@ -120,6 +181,17 @@ func DefaultTuningConfig() *TuningConfig {
 	tc.XC.EpicThreshold = 7
 	tc.XC.HighThreshold = 5
 	tc.XC.MediumThreshold = 3
+
+	// Display defaults
+	tc.Display.WindStrength.Light = WindStrengthTier{RGB: "#4fd1c5", Label: "Light", Icon: "💤"}
+	tc.Display.WindStrength.Moderate = WindStrengthTier{RGB: "#48bb78", Label: "Moderate", Icon: "✅"}
+	tc.Display.WindStrength.Fresh = WindStrengthTier{RGB: "#ecc94b", Label: "Fresh", Icon: "⚠️"}
+	tc.Display.WindStrength.Strong = WindStrengthTier{RGB: "#ed8936", Label: "Strong", Icon: "🟠"}
+	tc.Display.WindStrength.VeryStrong = WindStrengthTier{RGB: "#f56565", Label: "Very Strong", Icon: "🔴"}
+
+	tc.Display.Gradient.Low = GradientDisplay{RGB: "#48bb78", Icon: "✅"}
+	tc.Display.Gradient.Medium = GradientDisplay{RGB: "#ecc94b", Icon: "⚠️"}
+	tc.Display.Gradient.High = GradientDisplay{RGB: "#f56565", Icon: "🔴"}
 
 	return tc
 }

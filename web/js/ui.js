@@ -39,7 +39,7 @@ function gradientClass(gradient) {
 }
 
 /**
- * Return an icon for the wind gradient severity.
+ * Return an icon for the wind gradient severity, using config if available.
  * @param {string} gradient - Gradient label.
  * @returns {string} Emoji icon.
  */
@@ -136,16 +136,51 @@ function windArrow(deg) {
 }
 
 /**
- * Get a colour for wind speed (mph) — green for light, yellow moderate, red strong.
+ * Cached display config from the WASM output.
+ * Set by selectSite when WASM returns results.
+ * @type {Object|null}
+ */
+var displayConfig = null;
+
+/**
+ * Cached wind thresholds from the WASM output.
+ * @type {Object|null}
+ */
+var windThresholds = null;
+
+/**
+ * Apply display config colours as CSS custom properties on :root.
+ * This allows CSS gradient classes to use config-driven colours.
+ * @param {Object} dc - Display config object from WASM.
+ */
+function applyDisplayConfigCSS(dc) {
+  var root = document.documentElement;
+  root.style.setProperty('--good', dc.gradient.low.rgb);
+  root.style.setProperty('--warn', dc.gradient.medium.rgb);
+  root.style.setProperty('--bad', dc.gradient.high.rgb);
+}
+
+/**
+ * Get a colour for wind speed (mph) using config-driven thresholds.
+ * Falls back to hardcoded values if config not loaded.
+ * Thresholds derive from wind tuning: ideal_min, ideal_max, acceptable_max, dangerous_max.
  * @param {number} speed - Wind speed in mph.
  * @returns {string} CSS colour.
  */
 function windSpeedColour(speed) {
-  if (speed <= 8) return '#48bb78';   // light — green
-  if (speed <= 15) return '#4fd1c5';  // moderate — teal
-  if (speed <= 22) return '#ecc94b';  // fresh — yellow
-  if (speed <= 30) return '#ed8936';  // strong — orange
-  return '#f56565';                    // very strong — red
+  if (displayConfig && windThresholds) {
+    if (speed < windThresholds.ideal_min) return displayConfig.wind_strength.light.rgb;
+    if (speed <= windThresholds.ideal_max) return displayConfig.wind_strength.moderate.rgb;
+    if (speed <= windThresholds.acceptable_max) return displayConfig.wind_strength.fresh.rgb;
+    if (speed <= windThresholds.dangerous_max) return displayConfig.wind_strength.strong.rgb;
+    return displayConfig.wind_strength.very_strong.rgb;
+  }
+  // Fallback defaults
+  if (speed < 8) return '#4fd1c5';
+  if (speed <= 18) return '#48bb78';
+  if (speed <= 22) return '#ecc94b';
+  if (speed <= 25) return '#ed8936';
+  return '#f56565';
 }
 
 /**
@@ -273,7 +308,15 @@ async function selectSite(name) {
       return;
     }
 
-    var days = groupByDay(result);
+    // Extract display config and wind thresholds from WASM output
+    var metrics = result.metrics || result;
+    if (result.display) {
+      displayConfig = result.display;
+      windThresholds = result.wind_thresholds;
+      applyDisplayConfigCSS(result.display);
+    }
+
+    var days = groupByDay(metrics);
     var forecast = {
       site: site,
       days: days,
@@ -383,9 +426,11 @@ function renderForecast(forecast) {
       var t = new Date(h.time);
       var timeStr = t.getUTCHours().toString().padStart(2, '0') + ':00';
 
+      var windColour = windSpeedColour(h.wind_speed);
+
       html += '<tr>' +
         '<td>' + timeStr + '</td>' +
-        '<td>' + h.wind_speed.toFixed(0) + '</td>' +
+        '<td style="color:' + windColour + '">' + h.wind_speed.toFixed(0) + '</td>' +
         '<td>' + h.wind_dir_str + '</td>' +
         '<td>' + h.wind_gusts.toFixed(0) + '</td>' +
         '<td class="' + gradientClass(h.wind_gradient) + ' wind-profile-cell">' +

@@ -123,7 +123,7 @@ func run(cmd *cobra.Command, args []string) error {
 			continue
 		}
 		if opts.OutputFormat == "json" {
-			pgforecast.FormatJSON(os.Stdout, forecast)
+			pgforecast.FormatJSON(os.Stdout, forecast, tc)
 		} else {
 			pgforecast.FormatText(os.Stdout, forecast, tc)
 		}

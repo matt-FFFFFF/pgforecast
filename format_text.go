@@ -10,12 +10,8 @@ func starsStr(n int) string {
 	return strings.Repeat("⭐", n)
 }
 
-func gradientIcon(g string) string {
-	switch g {
-	case GradientLow: return "✅"
-	case GradientMedium: return "⚠️"
-	default: return "🔴"
-	}
+func gradientIcon(g string, tc *TuningConfig) string {
+	return tc.GradientIcon(g)
 }
 
 func thermalIcon(t string) string {
@@ -80,7 +76,7 @@ func FormatText(w io.Writer, f *SiteForecast, tc *TuningConfig) {
 				fmt.Sprintf("%.0f%s", h.WindSpeed, f.Units),
 				h.WindDirStr,
 				fmt.Sprintf("%.0f", h.WindGusts),
-				gradientIcon(h.WindGradient),
+				gradientIcon(h.WindGradient, tc),
 				fmt.Sprintf("%s(+%.0f)", h.WindGradient, h.WindGradientDiff),
 				thermalIcon(h.ThermalRating),
 				h.ThermalRating,
