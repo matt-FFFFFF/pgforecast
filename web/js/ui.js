@@ -152,9 +152,9 @@ function buildWindProfilePopup(h) {
   if (!h.pressure_levels || h.pressure_levels.length === 0) return '';
 
   var rows = '';
-  // Sort by pressure descending (lowest altitude first)
+  // Sort by pressure ascending (highest altitude first, surface at bottom)
   var levels = h.pressure_levels.slice().sort(function (a, b) {
-    return b.pressure_hpa - a.pressure_hpa;
+    return a.pressure_hpa - b.pressure_hpa;
   });
 
   levels.forEach(function (level) {
@@ -183,7 +183,7 @@ function buildWindProfilePopup(h) {
     '<div class="wp-title">Wind Profile</div>' +
     '<table class="wp-table">' +
       '<tr><th>Altitude</th><th></th><th>Dir</th><th>mph</th></tr>' +
-      surfRow + rows +
+      rows + surfRow +
     '</table>' +
   '</div>';
 }
