@@ -286,7 +286,12 @@ function renderForecast(forecast) {
         '<div class="summary-card"><div class="label">XC Potential</div><div class="value">' + (midHour ? midHour.xc_potential : 'N/A') + '</div></div>' +
       '</div>' +
       '<table class="hour-table">' +
-        '<tr><th>Time</th><th>Wind (mph)</th><th>Dir</th><th>Gust (mph)</th><th>Gradient <span class="tooltip-trigger" title="Wind speed difference between 1000hPa (~sea level) and 850hPa (~1500m). High gradient means stronger winds aloft, indicating turbulence risk.">❓</span></th><th>Thermal</th><th>Cloud</th><th>Rain</th><th>Score</th></tr>';
+        '<tr><th>Time</th><th>Wind (mph)</th><th>Dir</th><th>Gust (mph)</th>' +
+        '<th>Gradient <span class="tooltip-trigger" title="Wind speed difference between 1000hPa (~sea level) and 850hPa (~1500m). High gradient means stronger winds aloft, indicating turbulence risk.">❓</span></th>' +
+        '<th>Thermal <span class="tooltip-trigger" title="❄️ None · 🌤 Weak · ☀️ Moderate · 🔥 Strong · ⚡ Extreme. Based on CAPE (convective energy) and lapse rate — higher values mean stronger thermals.">❓</span></th>' +
+        '<th>Cloud <span class="tooltip-trigger" title="☀️ &lt;20% · ⛅ 20-50% · 🌥 50-80% · ☁️ &gt;80%. Total cloud cover percentage.">❓</span></th>' +
+        '<th>Rain <span class="tooltip-trigger" title="🌧 shows actual precipitation (mm). Percentage shows probability of rain when no precipitation detected.">❓</span></th>' +
+        '<th>Score</th></tr>';
 
     day.hours.forEach(function (h) {
       var t = new Date(h.time);
