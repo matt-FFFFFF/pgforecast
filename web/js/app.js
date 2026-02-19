@@ -103,6 +103,6 @@ async function init() {
     loadAllSitesOverview();
   } catch (err) {
     document.getElementById('wasmStatus').innerHTML =
-      '❌ WASM error: ' + err.message;
+      '❌ Failed to load forecast engine';
   }
 }
