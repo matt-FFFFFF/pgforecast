@@ -1,6 +1,7 @@
 package pgforecast
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +10,9 @@ import (
 	"strings"
 	"time"
 )
+
+// httpClient is the HTTP client used for API requests, with a default 30s timeout.
+var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 var pressureLevels = []int{1000, 950, 925, 900, 850, 700}
 
@@ -35,6 +39,14 @@ func windSpeedUnit(units string) string {
 
 // FetchWeather fetches weather data from Open-Meteo for a site.
 func FetchWeather(site Site, opts ForecastOptions) ([]HourlyData, error) {
+	return FetchWeatherWithContext(context.Background(), site, opts)
+}
+
+// FetchWeatherWithContext fetches weather data from Open-Meteo with context support for cancellation.
+func FetchWeatherWithContext(ctx context.Context, site Site, opts ForecastOptions) ([]HourlyData, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	u, _ := url.Parse("https://api.open-meteo.com/v1/forecast")
 	q := u.Query()
 	q.Set("latitude", fmt.Sprintf("%.4f", site.Lat))
@@ -45,7 +57,12 @@ func FetchWeather(site Site, opts ForecastOptions) ([]HourlyData, error) {
 	q.Set("timezone", "UTC")
 	u.RawQuery = q.Encode()
 
-	resp, err := http.Get(u.String())
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating request: %w", err)
+	}
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("fetching weather: %w", err)
 	}
