@@ -15,7 +15,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26'
+          go-version-file: go.mod
 
       - name: Run tests
         run: go test -v -race -count=1 ./...
@@ -25,6 +25,7 @@ jobs:
 
       - name: Build WASM (TinyGo)
         run: |
-          wget -q https://github.com/tinygo-org/tinygo/releases/download/v0.40.1/tinygo_0.40.1_amd64.deb
-          sudo dpkg -i tinygo_0.40.1_amd64.deb
+          TINYGO_VERSION=$(cat .tinygo-version)
+          wget -q "https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.deb"
+          sudo dpkg -i "tinygo_${TINYGO_VERSION}_amd64.deb"
           tinygo build -o web/pgforecast.wasm -target wasm -no-debug ./wasm/

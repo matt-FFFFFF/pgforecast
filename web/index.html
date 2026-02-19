@@ -411,35 +411,8 @@ async function rescoreAll(cachedWeather) {
   setStatus('All sites rescored');
 }
 
-// === Sites database ===
-const SITES = [
-  { name: "Ballard Down", lat: 50.6308, lon: -1.9472, elevation: 100, wind_min: 140, wind_max: 185, best_dir: 170, aspect: 170 },
-  { name: "Barton-on-Sea", lat: 50.7353, lon: -1.6594, elevation: 16, wind_min: 135, wind_max: 225, best_dir: 180, aspect: 180 },
-  { name: "Bell Hill", lat: 50.8758, lon: -2.2883, elevation: 262, wind_min: 275, wind_max: 340, best_dir: 305, aspect: 305 },
-  { name: "Bulbarrow", lat: 50.8514, lon: -2.3247, elevation: 250, wind_min: 210, wind_max: 240, best_dir: 225, aspect: 225 },
-  { name: "Corton Denham", lat: 51.0083, lon: -2.5239, elevation: 211, wind_min: 210, wind_max: 280, best_dir: 245, aspect: 245 },
-  { name: "Cowdown", lat: 50.7975, lon: -2.5136, elevation: 217, wind_min: 270, wind_max: 270, best_dir: 270, aspect: 270 },
-  { name: "Friar Waddon", lat: 50.6672, lon: -2.5092, elevation: 100, wind_min: 180, wind_max: 180, best_dir: 180, aspect: 180 },
-  { name: "Hambledon Hill", lat: 50.9130, lon: -2.2197, elevation: 180, wind_min: 22, wind_max: 68, best_dir: 45, aspect: 45 },
-  { name: "Kimmeridge", lat: 50.6153, lon: -2.1053, elevation: 218, wind_min: 210, wind_max: 270, best_dir: 240, aspect: 240 },
-  { name: "Knitson", lat: 50.6306, lon: -1.9928, elevation: 213, wind_min: 180, wind_max: 230, best_dir: 200, aspect: 200 },
-  { name: "Maiden Castle", lat: 50.6967, lon: -2.4689, elevation: 115, wind_min: 330, wind_max: 30, best_dir: 0, aspect: 0 },
-  { name: "Marley Combe", lat: 51.0028, lon: -1.9686, elevation: 200, wind_min: 315, wind_max: 360, best_dir: 337, aspect: 337 },
-  { name: "Nine Barrow Down", lat: 50.6308, lon: -1.9867, elevation: 180, wind_min: 0, wind_max: 45, best_dir: 22, aspect: 22 },
-  { name: "Okeford Hill", lat: 50.8847, lon: -2.2672, elevation: 246, wind_min: 5, wind_max: 40, best_dir: 30, aspect: 30 },
-  { name: "Portland East", lat: 50.5458, lon: -2.4203, elevation: 125, wind_min: 60, wind_max: 120, best_dir: 75, aspect: 75 },
-  { name: "Portland West", lat: 50.5550, lon: -2.4453, elevation: 131, wind_min: 270, wind_max: 315, best_dir: 295, aspect: 295 },
-  { name: "Ringstead", lat: 50.6403, lon: -2.3425, elevation: 147, wind_min: 210, wind_max: 260, best_dir: 225, aspect: 225 },
-  { name: "Southbourne", lat: 50.7214, lon: -1.8167, elevation: 50, wind_min: 160, wind_max: 200, best_dir: 180, aspect: 180 },
-  { name: "St Aldhelm's", lat: 50.5922, lon: -2.0597, elevation: 125, wind_min: 225, wind_max: 270, best_dir: 247, aspect: 247 },
-  { name: "Swallowcliffe", lat: 51.0300, lon: -2.0367, elevation: 205, wind_min: 290, wind_max: 335, best_dir: 315, aspect: 315 },
-  { name: "White Horse", lat: 50.6586, lon: -2.4044, elevation: 140, wind_min: 180, wind_max: 220, best_dir: 200, aspect: 200 },
-  { name: "Whitesheet", lat: 51.0133, lon: -2.0919, elevation: 225, wind_min: 260, wind_max: 280, best_dir: 270, aspect: 270 },
-  { name: "Winkelbury", lat: 50.9928, lon: -2.0726, elevation: 269, wind_min: 275, wind_max: 340, best_dir: 310, aspect: 310 },
-  { name: "Beer Head", lat: 50.6866, lon: -3.0999, elevation: 110, wind_min: 170, wind_max: 210, best_dir: 180, aspect: 180 },
-  { name: "Eype", lat: 50.7150, lon: -2.7800, elevation: 130, wind_min: 180, wind_max: 225, best_dir: 200, aspect: 200 },
-  { name: "Cogden", lat: 50.6950, lon: -2.7150, elevation: 50, wind_min: 180, wind_max: 225, best_dir: 200, aspect: 200 },
-];
+// === Sites database (loaded from sites.json) ===
+let SITES = [];
 
 // === Open-Meteo API ===
 const PRESSURE_LEVELS = [1000, 950, 925, 900, 850, 700];
@@ -693,14 +666,28 @@ async function loadAllSitesOverview() {
 }
 
 // === Init ===
-initMap();
-renderSiteList();
-loadWasm().then(async () => {
-  await loadTuning();
-  loadAllSitesOverview();
-}).catch(err => {
-  document.getElementById('wasmStatus').innerHTML = `❌ WASM error: ${err.message}`;
-});
+async function init() {
+  // Load sites from static JSON
+  try {
+    const resp = await fetch('sites.json');
+    SITES = await resp.json();
+  } catch (e) {
+    setStatus('Failed to load sites.json: ' + e.message);
+    return;
+  }
+
+  initMap();
+  renderSiteList();
+
+  try {
+    await loadWasm();
+    await loadTuning();
+    loadAllSitesOverview();
+  } catch (err) {
+    document.getElementById('wasmStatus').innerHTML = `❌ WASM error: ${err.message}`;
+  }
+}
+init();
 </script>
 </body>
 </html>
