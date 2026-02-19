@@ -100,11 +100,11 @@ func CalcWindGradient(surface float64, levels []PressureLevel, tc *TuningConfig)
 	}
 	switch {
 	case diff < tc.Gradient.LowThreshold:
-		rating = "Low"
+		rating = GradientLow
 	case diff < tc.Gradient.HighThreshold:
-		rating = "Medium"
+		rating = GradientMedium
 	default:
-		rating = "High"
+		rating = GradientHigh
 	}
 	return
 }
@@ -133,15 +133,15 @@ func CalcThermalRating(cape float64, levels []PressureLevel, tc *TuningConfig) s
 
 	switch {
 	case score >= 5:
-		return "Extreme"
+		return ThermalExtreme
 	case score >= 4:
-		return "Strong"
+		return ThermalStrong
 	case score >= 3:
-		return "Moderate"
+		return ThermalModerate
 	case score >= 1:
-		return "Weak"
+		return ThermalWeak
 	default:
-		return "None"
+		return ThermalNone
 	}
 }
 
@@ -170,13 +170,13 @@ func calcLapseRate(levels []PressureLevel) float64 {
 func CalcCAPERating(cape float64, tc *TuningConfig) string {
 	switch {
 	case cape >= tc.Thermal.CAPEExtreme:
-		return "Overdevelopment"
+		return CAPEOverdevelopment
 	case cape >= tc.Thermal.CAPEStrong:
-		return "Strong"
+		return CAPEStrong
 	case cape >= tc.Thermal.CAPEModerate:
-		return "Moderate"
+		return CAPEModerate
 	default:
-		return "Weak"
+		return CAPEWeak
 	}
 }
 
@@ -196,7 +196,7 @@ func CalcCloudbaseFt(temp, dewpoint float64, tc *TuningConfig) int {
 // CloudbaseStr returns a display string for cloudbase, showing "Fog" for very low values.
 func CloudbaseStr(ft int, tc *TuningConfig) string {
 	if ft <= tc.Cloudbase.MinRealisticFt {
-		return "Fog"
+		return CloudbaseFog
 	}
 	return fmt.Sprintf("%dft", ft)
 }
@@ -206,18 +206,18 @@ func CalcOrographicLift(windDir, windSpeed float64, siteAspect int, tc *TuningCo
 	diff := angleDiff(windDir, float64(siteAspect))
 
 	if windSpeed < tc.Orographic.MinWindSpeed {
-		return "None"
+		return OrographicNone
 	}
 
 	switch {
 	case diff <= tc.Orographic.StrongAngle:
-		return "Strong"
+		return OrographicStrong
 	case diff <= tc.Orographic.ModerateAngle:
-		return "Moderate"
+		return OrographicModerate
 	case diff <= tc.Orographic.WeakAngle:
-		return "Weak"
+		return OrographicWeak
 	default:
-		return "None"
+		return OrographicNone
 	}
 }
 
@@ -277,9 +277,9 @@ func CalcFlyabilityScore(h *HourlyData, site Site, gradientRating string, therma
 
 	// Wind gradient (NEW - was missing from scoring)
 	switch gradientRating {
-	case "High":
+	case GradientHigh:
 		score += s.GradientHighPenalty
-	case "Medium":
+	case GradientMedium:
 		score += s.GradientMedPenalty
 	}
 
@@ -296,7 +296,7 @@ func CalcFlyabilityScore(h *HourlyData, site Site, gradientRating string, therma
 	if h.CAPE >= tc.Thermal.CAPEModerate && h.CAPE < tc.Thermal.CAPEExtreme {
 		score += s.CAPEBonus
 	}
-	if thermalRating == "Strong" || thermalRating == "Moderate" {
+	if thermalRating == ThermalStrong || thermalRating == ThermalModerate {
 		score += s.ThermalStrongBonus
 	}
 
@@ -350,23 +350,23 @@ func CalcXCPotential(cape float64, cloudbaseFt int, windSpeed float64, thermalRa
 		score++
 	}
 	switch thermalRating {
-	case "Strong":
+	case ThermalStrong:
 		score += 2
-	case "Moderate":
+	case ThermalModerate:
 		score++
-	case "Extreme":
+	case ThermalExtreme:
 		score++
 	}
 
 	switch {
 	case score >= tc.XC.EpicThreshold:
-		return "Epic"
+		return XCEpic
 	case score >= tc.XC.HighThreshold:
-		return "High"
+		return XCHigh
 	case score >= tc.XC.MediumThreshold:
-		return "Medium"
+		return XCMedium
 	default:
-		return "Low"
+		return XCLow
 	}
 }
 
