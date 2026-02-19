@@ -5,13 +5,78 @@ import (
 	"math"
 )
 
+const (
+	// DegreesPerCompassPoint is the angular width of each of the 16 compass directions (360/16).
+	DegreesPerCompassPoint = 22.5
+
+	// CompassDirectionCount is the number of compass directions (N, NNE, NE, ...).
+	CompassDirectionCount = 16
+
+	// PressureLevelMinHPa is the lower bound (highest pressure) for flyable pressure levels (~sea level).
+	PressureLevelMinHPa = 850
+
+	// PressureLevelMaxHPa is the upper bound (lowest altitude) for flyable pressure levels.
+	PressureLevelMaxHPa = 1000
+
+	// LapseRatePressureHigh is the pressure level (hPa) used as the lower altitude reference for lapse rate.
+	LapseRatePressureHigh = 925
+
+	// LapseRatePressureLow is the pressure level (hPa) used as the upper altitude reference for lapse rate.
+	LapseRatePressureLow = 700
+
+	// DefaultLapseRate is the standard atmospheric lapse rate (°C/km) used when pressure level data is unavailable.
+	DefaultLapseRate = 6.5
+
+	// MetersPerKm converts meters to kilometers for lapse rate calculation.
+	MetersPerKm = 1000.0
+
+	// LapseRateStrongThreshold is the lapse rate (°C/km) above which an extra thermal score point is awarded.
+	LapseRateStrongThreshold = 9.0
+
+	// SpreadToCloudbaseDivisor is the temperature spread divisor in the cloudbase estimation formula.
+	SpreadToCloudbaseDivisor = 2.5
+
+	// SpreadToCloudbaseMultiplier converts the spread ratio to feet in the cloudbase estimation formula.
+	SpreadToCloudbaseMultiplier = 1000
+
+	// MetersToFeet is the conversion factor from meters to feet.
+	MetersToFeet = 3.28084
+
+	// DegreesHalfCircle is 180°, used in angle wrapping calculations.
+	DegreesHalfCircle = 180
+
+	// DegreesFullCircle is 360°, used in angle wrapping and modular arithmetic.
+	DegreesFullCircle = 360
+
+	// ScoreMin is the minimum clamped flyability score.
+	ScoreMin = 1
+
+	// ScoreMax is the maximum clamped flyability score.
+	ScoreMax = 5
+
+	// PrecipProbHighThreshold is the precipitation probability (%) above which a rain penalty applies.
+	PrecipProbHighThreshold = 50
+
+	// PrecipProbLowThreshold is the precipitation probability (%) above which a minor rain penalty applies.
+	PrecipProbLowThreshold = 30
+
+	// WindDirFarOffAngle is the angular distance (°) beyond which a full off-direction penalty applies.
+	WindDirFarOffAngle = 90.0
+
+	// WindDirModerateOffAngle is the angular distance (°) beyond which a moderate off-direction penalty applies.
+	WindDirModerateOffAngle = 45.0
+
+	// WindDirMarginalAngle is the angular distance (°) within which no off-direction penalty applies.
+	WindDirMarginalAngle = 20.0
+)
+
 // DegreesToCompass converts degrees to compass direction string.
 func DegreesToCompass(deg float64) string {
 	dirs := []string{"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
 		"S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"}
-	idx := int(math.Round(deg/22.5)) % 16
+	idx := int(math.Round(deg/DegreesPerCompassPoint)) % CompassDirectionCount
 	if idx < 0 {
-		idx += 16
+		idx += CompassDirectionCount
 	}
 	return dirs[idx]
 }
@@ -25,7 +90,7 @@ func CalcWindGradient(surface float64, levels []PressureLevel, tc *TuningConfig)
 	for _, l := range levels {
 		// Only check levels a paraglider might actually reach: 1000-850 hPa
 		// 1000 ~60-160m, 950 ~500m, 925 ~750m, 900 ~1000m, 850 ~1500m
-		if l.Pressure >= 850 && l.Pressure <= 1000 && l.WindSpeed > maxUpper {
+		if l.Pressure >= PressureLevelMinHPa && l.Pressure <= PressureLevelMaxHPa && l.WindSpeed > maxUpper {
 			maxUpper = l.WindSpeed
 		}
 	}
@@ -62,7 +127,7 @@ func CalcThermalRating(cape float64, levels []PressureLevel, tc *TuningConfig) s
 	if lapseRate > tc.Thermal.LapseRateBonus {
 		score += 1
 	}
-	if lapseRate > 9.0 {
+	if lapseRate > LapseRateStrongThreshold {
 		score += 1
 	}
 
@@ -84,21 +149,21 @@ func calcLapseRate(levels []PressureLevel) float64 {
 	var t925, h925, t700, h700 float64
 	var found925, found700 bool
 	for _, l := range levels {
-		if l.Pressure == 925 {
+		if l.Pressure == LapseRatePressureHigh {
 			t925 = l.Temperature
 			h925 = l.GeopotentialHeight
 			found925 = true
 		}
-		if l.Pressure == 700 {
+		if l.Pressure == LapseRatePressureLow {
 			t700 = l.Temperature
 			h700 = l.GeopotentialHeight
 			found700 = true
 		}
 	}
 	if !found925 || !found700 || h700 <= h925 {
-		return 6.5
+		return DefaultLapseRate
 	}
-	return (t925 - t700) / ((h700 - h925) / 1000.0)
+	return (t925 - t700) / ((h700 - h925) / MetersPerKm)
 }
 
 // CalcCAPERating rates CAPE value.
@@ -121,7 +186,7 @@ func CalcCloudbaseFt(temp, dewpoint float64, tc *TuningConfig) int {
 	if spread < 0 {
 		spread = 0
 	}
-	ft := int(spread / 2.5 * 1000)
+	ft := int(spread / SpreadToCloudbaseDivisor * SpreadToCloudbaseMultiplier)
 	if ft < tc.Cloudbase.MinRealisticFt {
 		ft = tc.Cloudbase.MinRealisticFt
 	}
@@ -158,8 +223,8 @@ func CalcOrographicLift(windDir, windSpeed float64, siteAspect int, tc *TuningCo
 
 func angleDiff(a, b float64) float64 {
 	d := math.Abs(a - b)
-	if d > 180 {
-		d = 360 - d
+	if d > DegreesHalfCircle {
+		d = DegreesFullCircle - d
 	}
 	return d
 }
@@ -190,11 +255,11 @@ func CalcFlyabilityScore(h *HourlyData, site Site, gradientRating string, therma
 		// How far outside the acceptable range?
 		distFromRange := distanceFromWindRange(h.WindDirection, site.WindMin, site.WindMax)
 		switch {
-		case distFromRange > 90:
+		case distFromRange > WindDirFarOffAngle:
 			score += s.DirOffPenalty // e.g. -2.0
-		case distFromRange > 45:
+		case distFromRange > WindDirModerateOffAngle:
 			score -= 1.0
-		case distFromRange > 20:
+		case distFromRange > WindDirMarginalAngle:
 			score -= 0.5
 		// Within 20° of range edge — marginal, no penalty
 		}
@@ -221,9 +286,9 @@ func CalcFlyabilityScore(h *HourlyData, site Site, gradientRating string, therma
 	// Rain
 	if h.Precipitation > 0 {
 		score += s.RainPenalty
-	} else if h.PrecipitationProbability > 50 {
+	} else if h.PrecipitationProbability > PrecipProbHighThreshold {
 		score += s.RainProbPenalty
-	} else if h.PrecipitationProbability > 30 {
+	} else if h.PrecipitationProbability > PrecipProbLowThreshold {
 		score -= 0.25
 	}
 
@@ -237,17 +302,17 @@ func CalcFlyabilityScore(h *HourlyData, site Site, gradientRating string, therma
 
 	// Clamp 1-5
 	result := int(math.Round(score))
-	if result < 1 {
-		result = 1
+	if result < ScoreMin {
+		result = ScoreMin
 	}
-	if result > 5 {
-		result = 5
+	if result > ScoreMax {
+		result = ScoreMax
 	}
 	return result
 }
 
 func isInWindRange(dir float64, min, max int) bool {
-	d := int(dir) % 360
+	d := int(dir) % DegreesFullCircle
 	if min <= max {
 		return d >= min && d <= max
 	}
@@ -329,7 +394,7 @@ func ComputeHourlyMetrics(h *HourlyData, site Site, tc *TuningConfig) HourlyMetr
 		OrographicLift:   CalcOrographicLift(h.WindDirection, h.WindSpeed, site.Aspect, tc),
 		FlyabilityScore:  CalcFlyabilityScore(h, site, gradientRating, thermalRating, tc),
 		XCPotential:      CalcXCPotential(h.CAPE, cloudbase, h.WindSpeed, thermalRating, tc),
-		FreezingLevel:    h.FreezingLevelHeight * 3.28084,
+		FreezingLevel:    h.FreezingLevelHeight * MetersToFeet,
 		IsDay:            h.IsDay == 1,
 		PressureLevels:   h.PressureLevels,
 	}
