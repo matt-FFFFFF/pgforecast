@@ -1,0 +1,61 @@
+# pgforecast.example.yaml
+# Paragliding forecast tuning configuration
+# Copy to pgforecast.yaml or ~/.config/pgforecast/pgforecast.yaml
+# All values shown are defaults. Environment variables use PGF_ prefix.
+
+wind:
+  ideal_min: 8           # Ideal minimum wind speed (mph)
+  ideal_max: 18          # Ideal maximum wind speed (mph)
+  acceptable_min: 5      # Acceptable minimum wind speed (mph)
+  acceptable_max: 22     # Acceptable maximum wind speed (mph)
+  dangerous_max: 25      # Wind speed considered dangerous (mph)
+  max_gust_factor: 1.5   # Gust/mean ratio triggering medium penalty
+  dangerous_gust_factor: 2.0  # Gust/mean ratio triggering high penalty
+
+gradient:
+  low_threshold: 10      # Wind gradient diff below this = Low (mph)
+  high_threshold: 20     # Wind gradient diff above this = High (mph)
+  high_penalty: -2.0     # Penalty for High gradient (used in gradient calc display)
+  medium_penalty: -1.0   # Penalty for Medium gradient
+
+thermal:
+  cape_weak: 100         # CAPE threshold for Weak thermals (J/kg)
+  cape_moderate: 300     # CAPE threshold for Moderate thermals
+  cape_strong: 1000      # CAPE threshold for Strong thermals
+  cape_extreme: 2500     # CAPE threshold for Extreme/overdevelopment
+  lapse_rate_bonus: 8.0  # Lapse rate (°C/km) above which thermal score gets bonus
+
+orographic:
+  min_wind_speed: 8      # Minimum wind speed for orographic lift (mph)
+  strong_angle: 15       # Max angle off aspect for Strong lift (degrees)
+  moderate_angle: 30     # Max angle off aspect for Moderate lift
+  weak_angle: 45         # Max angle off aspect for Weak lift
+
+cloudbase:
+  min_realistic_ft: 200  # Minimum realistic cloudbase (ft). Below = "Fog"
+
+scoring:
+  base_score: 2.5        # Starting score for flyability (1-5 scale)
+  wind_ideal_bonus: 1.0  # Bonus when wind in ideal range
+  wind_acceptable_bonus: 0.5  # Bonus when wind in acceptable range
+  wind_danger_penalty: -2.0   # Penalty when wind > dangerous_max
+  wind_high_penalty: -1.0     # Penalty when wind > acceptable_max
+  dir_on_bonus: 1.5      # Bonus when wind direction is on-site
+  dir_off_penalty: -2.0  # Penalty when wind >90° off best direction
+  gust_high_penalty: -1.5  # Penalty when gust factor > dangerous_gust_factor
+  gust_med_penalty: -0.5   # Penalty when gust factor > max_gust_factor
+  rain_penalty: -2.5     # Penalty when precipitation > 0
+  rain_prob_penalty: -0.5  # Penalty when precip probability > 50%
+  gradient_high_penalty: -1.5  # Penalty for High wind gradient
+  gradient_med_penalty: -0.5   # Penalty for Medium wind gradient
+  cape_bonus: 0.5        # Bonus for moderate CAPE (300-2500 J/kg)
+  thermal_strong_bonus: 0.5   # Bonus for Strong/Moderate thermal rating
+
+xc:
+  min_cloudbase_ft: 3000   # Minimum cloudbase for XC potential
+  good_cloudbase_ft: 4000  # Good cloudbase for XC potential
+  max_wind_speed: 20       # Maximum wind for XC (mph)
+  min_wind_speed: 8        # Minimum wind for XC (mph)
+  epic_threshold: 7        # XC score >= this = Epic
+  high_threshold: 5        # XC score >= this = High
+  medium_threshold: 3      # XC score >= this = Medium
