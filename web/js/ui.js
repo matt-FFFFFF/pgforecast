@@ -19,8 +19,10 @@ function isMobile() {
 function toggleSidebar() {
   var sidebar = document.getElementById('sidebar');
   var overlay = document.getElementById('sidebarOverlay');
+  var btn = document.getElementById('hamburgerBtn');
   sidebar.classList.toggle('open');
   overlay.classList.toggle('open');
+  btn.setAttribute('aria-expanded', sidebar.classList.contains('open'));
 }
 
 /**
@@ -29,8 +31,10 @@ function toggleSidebar() {
 function closeSidebar() {
   var sidebar = document.getElementById('sidebar');
   var overlay = document.getElementById('sidebarOverlay');
+  var btn = document.getElementById('hamburgerBtn');
   sidebar.classList.remove('open');
   overlay.classList.remove('open');
+  btn.setAttribute('aria-expanded', 'false');
 }
 
 /**
@@ -279,19 +283,28 @@ async function selectSite(name) {
   var site = SITES.find(function (s) { return s.name === name; });
   if (!site) return;
 
-  map.flyTo([site.lat, site.lon], 12, { duration: 0.5 });
+  // Cancel any pending mobile recenter handler from a previous selection
+  if (selectSite._pendingRecenter) {
+    map.off('moveend', selectSite._pendingRecenter);
+    selectSite._pendingRecenter = null;
+  }
 
   // On mobile, offset the map so the marker sits in the top 25% of the viewport,
   // keeping it visible above the forecast panel.
+  // Register handler BEFORE flyTo to avoid race condition.
   if (isMobile()) {
     closeSidebar();
-    map.once('moveend', function () {
+    selectSite._pendingRecenter = function () {
+      selectSite._pendingRecenter = null;
       var mapSize = map.getSize();
       // Shift marker from center (50%) to top 25% => move up by 25% of map height
       var offsetY = -Math.round(mapSize.y * 0.25);
       map.panBy([0, offsetY], { animate: true, duration: 0.3 });
-    });
+    };
+    map.once('moveend', selectSite._pendingRecenter);
   }
+
+  map.flyTo([site.lat, site.lon], 12, { duration: 0.5 });
 
   showForecastPanel();
 
