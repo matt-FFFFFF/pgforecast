@@ -23,9 +23,21 @@ jobs:
       - name: Build CLI
         run: go build ./cmd/pgforecast/
 
-      - name: Build WASM (TinyGo)
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go (for TinyGo)
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install TinyGo
         run: |
           TINYGO_VERSION=$(cat .tinygo-version)
           wget -q "https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.deb"
           sudo dpkg -i "tinygo_${TINYGO_VERSION}_amd64.deb"
-          tinygo build -o web/pgforecast.wasm -target wasm -no-debug ./wasm/
+
+      - name: Build WASM
+        run: tinygo build -o web/pgforecast.wasm -target wasm -no-debug ./wasm/
