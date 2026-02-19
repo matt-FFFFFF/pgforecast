@@ -44,6 +44,11 @@ function gradientClass(gradient) {
  * @returns {string} Emoji icon.
  */
 function gradientIcon(gradient) {
+  if (displayConfig) {
+    if (gradient.includes('Low')) return displayConfig.gradient.low.icon;
+    if (gradient.includes('Medium')) return displayConfig.gradient.medium.icon;
+    return displayConfig.gradient.high.icon;
+  }
   if (gradient.includes('Low')) return '✅';
   if (gradient.includes('Medium')) return '⚠️';
   return '🔴';
