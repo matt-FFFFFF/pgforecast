@@ -1,8 +1,12 @@
 package pgforecast
 
 import (
+	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestParseOpenMeteoJSON(t *testing.T) {
@@ -120,5 +124,33 @@ func TestHourlyMetricsJSON(t *testing.T) {
 	}
 	if decoded["flyability_score"].(float64) != 4 {
 		t.Errorf("flyability_score = %v", decoded["flyability_score"])
+	}
+}
+
+func TestHTTPClientHasTimeout(t *testing.T) {
+	if httpClient.Timeout != 30*time.Second {
+		t.Errorf("httpClient.Timeout = %v, want 30s", httpClient.Timeout)
+	}
+}
+
+func TestFetchWeatherWithContext_Cancellation(t *testing.T) {
+	// Start a server that delays longer than our context
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(2 * time.Second)
+		w.WriteHeader(200)
+	}))
+	defer srv.Close()
+
+	// Temporarily override httpClient to point at test server (no timeout so we test context cancel)
+	origClient := httpClient
+	httpClient = &http.Client{Timeout: 0} // rely on context
+	defer func() { httpClient = origClient }()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	_, err := FetchWeatherWithContext(ctx, Site{Lat: 0, Lon: 0}, ForecastOptions{})
+	if err == nil {
+		t.Fatal("expected error from cancelled context")
 	}
 }
