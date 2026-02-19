@@ -103,7 +103,7 @@
   .extended-table th { text-align: left; color: var(--muted); font-weight: 500; padding: 0.5rem; border-bottom: 1px solid var(--border); }
   .extended-table td { padding: 0.5rem; border-bottom: 1px solid rgba(45,55,72,0.5); }
 
-  .status-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 0.4rem 1rem; background: var(--card); border-top: 1px solid var(--border); font-size: 0.7rem; color: var(--muted); z-index: 20; }
+  .status-bar { padding: 0.4rem 1rem; background: var(--card); border-top: 1px solid var(--border); font-size: 0.7rem; color: var(--muted); }
 
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--muted); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -139,7 +139,7 @@
   <div class="main">
     <div id="map"></div>
     <div class="forecast-wrapper" id="forecastWrapper">
-      <div class="drag-handle" id="dragHandle"></div>
+      <div class="drag-handle" id="dragHandle" tabindex="0" role="separator" aria-orientation="horizontal" aria-label="Resize forecast panel"></div>
       <div class="forecast-panel" id="forecastPanel"></div>
     </div>
   </div>
@@ -176,7 +176,7 @@
     let newH = startH + (startY - e.clientY);
     newH = Math.max(minH, Math.min(maxH, newH));
     wrapper.style.height = newH + 'px';
-    map.invalidateSize();
+    if (map) map.invalidateSize();
   });
 
   document.addEventListener('mouseup', () => {
@@ -185,7 +185,7 @@
     wrapper.style.transition = '';
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
-    map.invalidateSize();
+    if (map) map.invalidateSize();
   });
 
   // Touch support
@@ -205,14 +205,14 @@
     let newH = startH + (startY - e.touches[0].clientY);
     newH = Math.max(minH, Math.min(maxH, newH));
     wrapper.style.height = newH + 'px';
-    map.invalidateSize();
+    if (map) map.invalidateSize();
   }, { passive: false });
 
   document.addEventListener('touchend', () => {
     if (!dragging) return;
     dragging = false;
     wrapper.style.transition = '';
-    map.invalidateSize();
+    if (map) map.invalidateSize();
   });
 })();
 
@@ -221,7 +221,7 @@ function showForecastPanel() {
   if (!wrapper.classList.contains('open')) {
     wrapper.classList.add('open');
     wrapper.style.height = '';  // reset to CSS default (50%)
-    setTimeout(() => map.invalidateSize(), 350);
+    setTimeout(() => { if (map) map.invalidateSize(); }, 300);
   }
 }
 
@@ -230,7 +230,7 @@ function hideForecastPanel() {
   wrapper.classList.remove('open');
   wrapper.style.height = '';
   document.getElementById('forecastPanel').innerHTML = '';
-  setTimeout(() => map.invalidateSize(), 350);
+  setTimeout(() => { if (map) map.invalidateSize(); }, 300);
 }
 
 // === Tuning system ===
@@ -380,8 +380,9 @@ function resetTuning() {
 }
 
 function exportTuning() {
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(activeTuning, null, 2)], { type: 'application/json' }));
-  a.download = 'pgforecast-tuning.json'; a.click();
+  const url = URL.createObjectURL(new Blob([JSON.stringify(activeTuning, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a'); a.href = url;
+  a.download = 'pgforecast-tuning.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 function importTuning() {
@@ -494,11 +495,14 @@ function thermalIcon(t) { return { None:'❄️', Weak:'🌤', Moderate:'☀️'
 function cloudIcon(c) { return c < 20 ? '☀️' : c < 50 ? '⛅' : c < 80 ? '🌥' : '☁️'; }
 function rainStr(p, prob) { return p > 0 ? `<span class="rain">🌧${p.toFixed(1)}</span>` : prob > 30 ? `${prob.toFixed(0)}%` : '-'; }
 
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
 function renderSiteList() {
   document.getElementById('siteList').innerHTML = SITES.map(s => {
     const fc = siteForecasts[s.name];
-    return `<div class="site-item ${selectedSite === s.name ? 'active' : ''}" onclick="selectSite('${s.name}')">
-      <div><div class="site-name">${s.name}</div>
+    const eName = escHtml(s.name);
+    return `<div class="site-item ${selectedSite === s.name ? 'active' : ''}" onclick="selectSite('${eName}')">
+      <div><div class="site-name">${eName}</div>
       <div class="site-meta">${compassDir(s.aspect)} facing · ${s.elevation}m</div></div>
       <div class="site-score">${fc ? starsHTML(fc.bestScore) : ''}</div></div>`;
   }).join('');
@@ -552,7 +556,7 @@ function groupByDay(metrics) {
 function renderForecast(forecast) {
   const panel = document.getElementById('forecastPanel');
   const days = forecast.days, detailed = days.slice(0,3), extended = days.slice(3);
-  let html = `<h2 style="margin-bottom:1rem;font-size:1.2rem;">${forecast.site.name}</h2>`;
+  let html = `<h2 style="margin-bottom:1rem;font-size:1.2rem;">${escHtml(forecast.site.name)}</h2>`;
 
   detailed.forEach((day, i) => {
     const dt = new Date(day.date + 'T12:00:00Z');
@@ -585,7 +589,7 @@ function renderForecast(forecast) {
   if (extended.length > 0) {
     html += `<div class="day-section"><div class="day-header"><span class="day-label">EXTENDED OUTLOOK</span></div>
       <table class="extended-table"><tr><th>Day</th><th>Wind</th><th>Dir</th><th>Thermal</th><th>Rain</th><th>Score</th></tr>
-      ${extended.map(day => {
+      ${extended.filter(day => day.hours.length > 0).map(day => {
         const dt = new Date(day.date + 'T12:00:00Z');
         const ds = dt.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
         const aw = day.hours.reduce((s,h)=>s+h.wind_speed,0)/day.hours.length;
