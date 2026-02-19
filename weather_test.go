@@ -130,29 +130,13 @@ func TestHourlyMetricsJSON(t *testing.T) {
 	}
 }
 
-func TestHTTPClientHasTimeout(t *testing.T) {
-	if httpClient.Timeout != 30*time.Second {
-		t.Errorf("httpClient.Timeout = %v, want 30s", httpClient.Timeout)
+func TestDefaultHTTPClientHasTimeout(t *testing.T) {
+	c, ok := defaultHTTPClient.(*http.Client)
+	if !ok {
+		t.Fatal("defaultHTTPClient is not *http.Client")
 	}
-}
-
-func TestFetchWeatherWithContext_Cancellation(t *testing.T) {
-	// Use a custom RoundTripper that blocks until context is cancelled
-	origClient := httpClient
-	httpClient = &http.Client{
-		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-			<-req.Context().Done()
-			return nil, req.Context().Err()
-		}),
-	}
-	defer func() { httpClient = origClient }()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
-	defer cancel()
-
-	_, err := FetchWeatherWithContext(ctx, Site{Lat: 0, Lon: 0}, ForecastOptions{})
-	if err == nil {
-		t.Fatal("expected error from cancelled context")
+	if c.Timeout != 30*time.Second {
+		t.Errorf("defaultHTTPClient.Timeout = %v, want 30s", c.Timeout)
 	}
 }
 
@@ -163,28 +147,42 @@ func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
 }
 
+// mockClient creates an *http.Client with a custom RoundTripper for use in tests.
+func mockClient(rt roundTripperFunc) *http.Client {
+	return &http.Client{Transport: rt}
+}
+
+func TestFetchWeatherWithContext_Cancellation(t *testing.T) {
+	client := mockClient(func(req *http.Request) (*http.Response, error) {
+		<-req.Context().Done()
+		return nil, req.Context().Err()
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	_, err := FetchWeatherWithContext(ctx, Site{Lat: 0, Lon: 0}, ForecastOptions{HTTPClient: client})
+	if err == nil {
+		t.Fatal("expected error from cancelled context")
+	}
+}
+
 func TestFetchWeatherWithContext_OversizedResponse(t *testing.T) {
-	origClient := httpClient
-	// Return valid JSON larger than maxResponseSize — should trigger ErrResponseTooLarge.
-	// Build a valid JSON object with a huge padding string.
 	padding := make([]byte, maxResponseSize)
 	for i := range padding {
 		padding[i] = 'x'
 	}
 	hugeJSON := fmt.Sprintf(`{"hourly":{"time":[]}, "pad":"%s"}`, string(padding))
 
-	httpClient = &http.Client{
-		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Body:       io.NopCloser(bytes.NewReader([]byte(hugeJSON))),
-				Header:     make(http.Header),
-			}, nil
-		}),
-	}
-	defer func() { httpClient = origClient }()
+	client := mockClient(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(hugeJSON))),
+			Header:     make(http.Header),
+		}, nil
+	})
 
-	_, err := FetchWeatherWithContext(context.Background(), Site{}, ForecastOptions{})
+	_, err := FetchWeatherWithContext(context.Background(), Site{}, ForecastOptions{HTTPClient: client})
 	if err == nil {
 		t.Fatal("expected error for oversized response")
 	}
@@ -194,16 +192,11 @@ func TestFetchWeatherWithContext_OversizedResponse(t *testing.T) {
 }
 
 func TestFetchWeatherWithContext_NilContext(t *testing.T) {
-	// Ensure nil context doesn't panic - just verify it doesn't crash
-	origClient := httpClient
-	httpClient = &http.Client{
-		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-			return nil, fmt.Errorf("expected")
-		}),
-	}
-	defer func() { httpClient = origClient }()
+	client := mockClient(func(req *http.Request) (*http.Response, error) {
+		return nil, fmt.Errorf("expected")
+	})
 
-	_, err := FetchWeatherWithContext(nil, Site{}, ForecastOptions{})
+	_, err := FetchWeatherWithContext(nil, Site{}, ForecastOptions{HTTPClient: client})
 	if err == nil {
 		t.Fatal("expected error")
 	}

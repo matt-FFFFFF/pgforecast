@@ -115,5 +115,6 @@ type ForecastOptions struct {
 	Timezone     string
 	Model        string
 	OutputFormat string // text, json
+	HTTPClient   HTTPDoer // optional; defaults to a standard http.Client with 30s timeout
 	Tuning       *TuningConfig
 }
