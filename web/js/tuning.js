@@ -96,6 +96,11 @@ async function loadTuning() {
     }
   }
 
+  if (!defaultTuning) {
+    console.error('Failed to load default tuning from tuning.json or WASM');
+    return;
+  }
+
   var stored = localStorage.getItem(TUNING_STORAGE_KEY);
   if (stored) {
     try {
@@ -195,7 +200,7 @@ function renderTuningPanel() {
     '<button class="btn-apply" onclick="applyTuning()">Apply & Rescore</button>' +
     '<button class="btn-reset" onclick="resetTuning()">Reset to Defaults</button>' +
     '<button class="btn-export" onclick="exportTuning()">📋 Export JSON</button>' +
-    '<button class="btn-close" onclick="importTuning()">📂 Import JSON</button>' +
+    '<button class="btn-export" onclick="importTuning()">📂 Import JSON</button>' +
   '</div>';
 
   panel.innerHTML = html;

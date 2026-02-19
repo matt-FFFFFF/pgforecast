@@ -118,7 +118,7 @@ function renderSiteList() {
     var activeClass = (selectedSite === site.name) ? 'active' : '';
     var scoreHtml = forecast ? starsHTML(forecast.bestScore) : '';
 
-    return '<div class="site-item ' + activeClass + '" onclick="selectSite(\'' + escapedName + '\')">' +
+    return '<div class="site-item ' + activeClass + '" data-site="' + escapedName + '">' +
       '<div>' +
         '<div class="site-name">' + escapedName + '</div>' +
         '<div class="site-meta">' + compassDir(site.aspect) + ' facing · ' + site.elevation + 'm</div>' +
@@ -127,7 +127,16 @@ function renderSiteList() {
     '</div>';
   }).join('');
 
-  document.getElementById('siteList').innerHTML = html;
+  var siteListEl = document.getElementById('siteList');
+  siteListEl.innerHTML = html;
+
+  // Event delegation for site clicks (avoids inline onclick with site names)
+  siteListEl.onclick = function (e) {
+    var item = e.target.closest('.site-item');
+    if (item && item.dataset.site) {
+      selectSite(item.dataset.site);
+    }
+  };
 }
 
 /**

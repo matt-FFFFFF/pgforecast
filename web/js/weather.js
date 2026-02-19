@@ -1,7 +1,7 @@
 /**
  * weather.js — Open-Meteo API integration and WASM loader.
  *
- * No dependencies on other app modules.
+ * Globals used: wasmReady (from app.js).
  */
 
 /** @type {number[]} Pressure levels to request from Open-Meteo */
