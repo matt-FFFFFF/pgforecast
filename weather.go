@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -75,7 +76,7 @@ func FetchWeatherWithContext(ctx context.Context, site Site, opts ForecastOption
 	}
 
 	client := opts.HTTPClient
-	if client == nil {
+	if client == nil || (reflect.ValueOf(client).Kind() == reflect.Ptr && reflect.ValueOf(client).IsNil()) {
 		client = defaultHTTPClient
 	}
 
