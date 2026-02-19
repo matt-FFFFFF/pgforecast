@@ -286,7 +286,7 @@ function renderForecast(forecast) {
         '<div class="summary-card"><div class="label">XC Potential</div><div class="value">' + (midHour ? midHour.xc_potential : 'N/A') + '</div></div>' +
       '</div>' +
       '<table class="hour-table">' +
-        '<tr><th>Time</th><th>Wind</th><th>Dir</th><th>Gust</th><th>Gradient <span class="tooltip-trigger" title="Wind speed difference between 1000hPa (~sea level) and 850hPa (~1500m). High gradient means stronger winds aloft, indicating turbulence risk.">❓</span></th><th>Thermal</th><th>Cloud</th><th>Rain</th><th>Score</th></tr>';
+        '<tr><th>Time</th><th>Wind (mph)</th><th>Dir</th><th>Gust (mph)</th><th>Gradient <span class="tooltip-trigger" title="Wind speed difference between 1000hPa (~sea level) and 850hPa (~1500m). High gradient means stronger winds aloft, indicating turbulence risk.">❓</span></th><th>Thermal</th><th>Cloud</th><th>Rain</th><th>Score</th></tr>';
 
     day.hours.forEach(function (h) {
       var t = new Date(h.time);
@@ -294,9 +294,9 @@ function renderForecast(forecast) {
 
       html += '<tr>' +
         '<td>' + timeStr + '</td>' +
-        '<td>' + h.wind_speed.toFixed(0) + 'mph</td>' +
+        '<td>' + h.wind_speed.toFixed(0) + '</td>' +
         '<td>' + h.wind_dir_str + '</td>' +
-        '<td>' + h.wind_gusts.toFixed(0) + 'mph</td>' +
+        '<td>' + h.wind_gusts.toFixed(0) + '</td>' +
         '<td class="' + gradientClass(h.wind_gradient) + '">' +
           gradientIcon(h.wind_gradient) + ' ' + h.wind_gradient +
           '(+' + h.wind_gradient_diff.toFixed(0) + ')</td>' +
@@ -315,7 +315,7 @@ function renderForecast(forecast) {
     html += '<div class="day-section">' +
       '<div class="day-header"><span class="day-label">EXTENDED OUTLOOK</span></div>' +
       '<table class="extended-table">' +
-        '<tr><th>Day</th><th>Wind</th><th>Dir</th><th>Thermal</th><th>Rain</th><th>Score</th></tr>';
+        '<tr><th>Day</th><th>Wind (mph)</th><th>Dir</th><th>Thermal</th><th>Rain</th><th>Score</th></tr>';
 
     var thermalRanks = ['None', 'Weak', 'Moderate', 'Strong', 'Extreme'];
 
@@ -356,7 +356,7 @@ function renderForecast(forecast) {
 
       html += '<tr>' +
         '<td>' + dayString + '</td>' +
-        '<td>' + avgWind.toFixed(0) + 'mph</td>' +
+        '<td>' + avgWind.toFixed(0) + '</td>' +
         '<td>' + compassDir(avgDir) + '</td>' +
         '<td>' + thermalIcon(bestThermal) + ' ' + bestThermal + '</td>' +
         '<td>' + maxPrecipProb.toFixed(0) + '%</td>' +
