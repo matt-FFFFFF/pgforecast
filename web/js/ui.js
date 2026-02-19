@@ -296,7 +296,7 @@ function renderForecast(forecast) {
         '<td>' + timeStr + '</td>' +
         '<td>' + h.wind_speed.toFixed(0) + 'mph</td>' +
         '<td>' + h.wind_dir_str + '</td>' +
-        '<td>' + h.wind_gusts.toFixed(0) + '</td>' +
+        '<td>' + h.wind_gusts.toFixed(0) + 'mph</td>' +
         '<td class="' + gradientClass(h.wind_gradient) + '">' +
           gradientIcon(h.wind_gradient) + ' ' + h.wind_gradient +
           '(+' + h.wind_gradient_diff.toFixed(0) + ')</td>' +
