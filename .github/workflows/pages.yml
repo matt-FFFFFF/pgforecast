@@ -36,13 +36,14 @@ jobs:
 
       - name: Minify assets
         run: |
+          npm install --no-save html-minifier-terser@7 terser@5 clean-css@5
           npx html-minifier-terser \
             --collapse-whitespace --remove-comments --minify-css true --minify-js true \
             -o web/index.html web/index.html
           for f in web/js/*.js; do
             npx terser "$f" -o "$f" --compress --mangle reserved='["selectSite","toggleTuning","closeTuning","openTuning","onTuningInput","applyTuning","resetTuning","exportTuning","importTuning"]'
           done
-          npx clean-css-cli -o web/css/style.css web/css/style.css
+          node -e "const c=require('clean-css'),f=require('fs');const o=new c().minify(f.readFileSync('web/css/style.css','utf8'));f.writeFileSync('web/css/style.css',o.styles)"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
