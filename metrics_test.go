@@ -410,6 +410,12 @@ func TestComputeHourlyMetrics(t *testing.T) {
 	if !m.IsDay {
 		t.Error("IsDay should be true")
 	}
+	if len(m.PressureLevels) != 3 {
+		t.Fatalf("PressureLevels length = %d, want 3", len(m.PressureLevels))
+	}
+	if m.PressureLevels[0].Pressure != 950 {
+		t.Errorf("PressureLevels[0].Pressure = %d, want 950", m.PressureLevels[0].Pressure)
+	}
 }
 
 func TestDefaultTuningConfig(t *testing.T) {

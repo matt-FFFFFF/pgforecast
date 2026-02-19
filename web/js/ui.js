@@ -111,7 +111,7 @@ function escHtml(str) {
  * Map pressure level (hPa) to approximate altitude string.
  */
 var PRESSURE_ALTITUDES = {
-  1000: '~100m (surface)',
+  1000: '~100m',
   950: '~500m',
   925: '~750m',
   900: '~1000m',
@@ -126,9 +126,8 @@ var PRESSURE_ALTITUDES = {
  * @returns {string} HTML span with rotated arrow.
  */
 function windArrow(deg) {
-  // Arrow points the direction wind is going TO (add 180° to "from" direction)
-  var rotation = (deg + 180) % 360;
-  return '<span class="wind-arrow" style="transform:rotate(' + rotation + 'deg)">↑</span>';
+  // Arrow points FROM the wind direction (same convention as compass label)
+  return '<span class="wind-arrow" style="transform:rotate(' + deg + 'deg)">↓</span>';
 }
 
 /**
@@ -468,33 +467,44 @@ function setStatus(message) {
 }
 
 /**
- * Position wind profile popups using fixed positioning to escape overflow containers.
+ * Initialise wind profile popup positioning.
+ * Called from app.js init() after DOM is ready.
  * Uses event delegation on the forecast panel.
  */
-(function () {
-  document.addEventListener('mouseover', function (e) {
+function initWindProfilePopups() {
+  var panel = document.getElementById('forecastPanel');
+  if (!panel) return;
+
+  panel.addEventListener('mouseover', function (e) {
     var cell = e.target.closest('.wind-profile-cell');
     if (!cell) return;
     var popup = cell.querySelector('.wind-profile-popup');
     if (!popup) return;
 
-    var rect = cell.getBoundingClientRect();
-    var popupH = 280; // approximate height
+    // Temporarily show to measure
+    popup.style.visibility = 'hidden';
+    popup.style.display = 'block';
+    var popupRect = popup.getBoundingClientRect();
+    popup.style.visibility = '';
 
-    // Position above the cell, centered horizontally
-    var top = rect.top - popupH - 4;
-    var left = rect.left + rect.width / 2 - 110;
+    var cellRect = cell.getBoundingClientRect();
 
-    // If it would go above viewport, show below instead
+    // Position above the cell, centered
+    var top = cellRect.top - popupRect.height - 4;
+    var left = cellRect.left + cellRect.width / 2 - popupRect.width / 2;
+
+    // If above viewport, show below
     if (top < 8) {
-      top = rect.bottom + 4;
+      top = cellRect.bottom + 4;
     }
 
     // Keep within viewport horizontally
     if (left < 8) left = 8;
-    if (left + 220 > window.innerWidth - 8) left = window.innerWidth - 228;
+    if (left + popupRect.width > window.innerWidth - 8) {
+      left = window.innerWidth - popupRect.width - 8;
+    }
 
     popup.style.top = top + 'px';
     popup.style.left = left + 'px';
   });
-})();
+}

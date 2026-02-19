@@ -548,8 +548,7 @@ body {
   pointer-events: none;
 }
 
-.wind-profile-cell:hover .wind-profile-popup,
-.wind-profile-popup.visible {
+.wind-profile-cell:hover .wind-profile-popup {
   display: block;
 }
 
