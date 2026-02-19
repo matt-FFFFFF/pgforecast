@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -164,20 +165,19 @@ func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func TestFetchWeatherWithContext_OversizedResponse(t *testing.T) {
 	origClient := httpClient
-	// Return a response larger than maxResponseSize — the JSON decoder should fail
-	// because the body is truncated mid-stream by LimitReader.
-	hugeBody := make([]byte, maxResponseSize+1024)
-	for i := range hugeBody {
-		hugeBody[i] = ' '
+	// Return valid JSON larger than maxResponseSize — should trigger ErrResponseTooLarge.
+	// Build a valid JSON object with a huge padding string.
+	padding := make([]byte, maxResponseSize)
+	for i := range padding {
+		padding[i] = 'x'
 	}
-	// Start with valid-looking JSON that won't fully decode
-	copy(hugeBody, []byte(`{"hourly":{"time":[`))
+	hugeJSON := fmt.Sprintf(`{"hourly":{"time":[]}, "pad":"%s"}`, string(padding))
 
 	httpClient = &http.Client{
 		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       io.NopCloser(bytes.NewReader(hugeBody)),
+				Body:       io.NopCloser(bytes.NewReader([]byte(hugeJSON))),
 				Header:     make(http.Header),
 			}, nil
 		}),
@@ -187,6 +187,9 @@ func TestFetchWeatherWithContext_OversizedResponse(t *testing.T) {
 	_, err := FetchWeatherWithContext(context.Background(), Site{}, ForecastOptions{})
 	if err == nil {
 		t.Fatal("expected error for oversized response")
+	}
+	if !errors.Is(err, ErrResponseTooLarge) {
+		t.Fatalf("expected ErrResponseTooLarge, got: %v", err)
 	}
 }
 

@@ -3,6 +3,7 @@ package pgforecast
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,6 +17,9 @@ var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 // maxResponseSize is the maximum allowed response body size (10 MB).
 const maxResponseSize = 10 * 1024 * 1024
+
+// ErrResponseTooLarge is returned when the API response exceeds maxResponseSize.
+var ErrResponseTooLarge = errors.New("response body exceeds size limit")
 
 var pressureLevels = []int{1000, 950, 925, 900, 850, 700}
 
@@ -75,10 +79,16 @@ func FetchWeatherWithContext(ctx context.Context, site Site, opts ForecastOption
 		return nil, fmt.Errorf("API error %d: %s", resp.StatusCode, string(body))
 	}
 
-	limitedBody := io.LimitReader(resp.Body, maxResponseSize)
+	limitedBody := &io.LimitedReader{R: resp.Body, N: maxResponseSize + 1}
 	var raw map[string]interface{}
 	if err := json.NewDecoder(limitedBody).Decode(&raw); err != nil {
+		if limitedBody.N <= 0 {
+			return nil, fmt.Errorf("%w (%d bytes)", ErrResponseTooLarge, maxResponseSize)
+		}
 		return nil, fmt.Errorf("decoding response: %w", err)
+	}
+	if limitedBody.N <= 0 {
+		return nil, fmt.Errorf("%w (%d bytes)", ErrResponseTooLarge, maxResponseSize)
 	}
 
 	return parseHourlyData(raw)
