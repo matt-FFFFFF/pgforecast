@@ -63,6 +63,16 @@ func FetchWeather(site Site, opts ForecastOptions) ([]HourlyData, error) {
 	return parseHourlyData(raw)
 }
 
+// ParseOpenMeteoJSON parses a raw Open-Meteo JSON response into HourlyData.
+// Exported for use by WASM and other consumers.
+func ParseOpenMeteoJSON(rawJSON []byte) ([]HourlyData, error) {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(rawJSON, &raw); err != nil {
+		return nil, fmt.Errorf("decoding JSON: %w", err)
+	}
+	return parseHourlyData(raw)
+}
+
 func buildHourlyParams() string {
 	params := make([]string, len(surfaceParams))
 	copy(params, surfaceParams)
