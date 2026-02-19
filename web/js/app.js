@@ -50,8 +50,17 @@ async function loadAllSitesOverview() {
       );
 
       if (!result.error) {
-        const days = groupByDay(result);
+        // WASM output wraps metrics in {metrics, display, wind_thresholds}
+        const metrics = result.metrics || result;
+        const days = groupByDay(metrics);
         let bestScore = 0;
+
+        // Apply display config from the first successful result
+        if (result.display && !displayConfig) {
+          displayConfig = result.display;
+          windThresholds = result.wind_thresholds;
+          applyDisplayConfigCSS(result.display);
+        }
 
         days.slice(0, 3).forEach(function (day) {
           day.hours.forEach(function (hour) {
@@ -71,7 +80,7 @@ async function loadAllSitesOverview() {
         updateMarkerColor(site.name, bestScore);
       }
     } catch (e) {
-      // Silently skip sites that fail to load
+      console.error('Failed to load forecast for ' + site.name + ':', e);
     }
 
     renderSiteList();
