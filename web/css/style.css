@@ -548,9 +548,7 @@ body {
   pointer-events: none;
 }
 
-.wind-profile-cell:hover .wind-profile-popup {
-  display: block;
-}
+/* Show/hide managed by JS (initWindProfilePopups) */
 
 .wp-title {
   font-size: 0.75rem;
