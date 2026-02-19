@@ -1,9 +1,12 @@
 package pgforecast
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -158,6 +161,36 @@ type roundTripperFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
+}
+
+func TestFetchWeatherWithContext_OversizedResponse(t *testing.T) {
+	origClient := httpClient
+	// Return valid JSON larger than maxResponseSize — should trigger ErrResponseTooLarge.
+	// Build a valid JSON object with a huge padding string.
+	padding := make([]byte, maxResponseSize)
+	for i := range padding {
+		padding[i] = 'x'
+	}
+	hugeJSON := fmt.Sprintf(`{"hourly":{"time":[]}, "pad":"%s"}`, string(padding))
+
+	httpClient = &http.Client{
+		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(hugeJSON))),
+				Header:     make(http.Header),
+			}, nil
+		}),
+	}
+	defer func() { httpClient = origClient }()
+
+	_, err := FetchWeatherWithContext(context.Background(), Site{}, ForecastOptions{})
+	if err == nil {
+		t.Fatal("expected error for oversized response")
+	}
+	if !errors.Is(err, ErrResponseTooLarge) {
+		t.Fatalf("expected ErrResponseTooLarge, got: %v", err)
+	}
 }
 
 func TestFetchWeatherWithContext_NilContext(t *testing.T) {
