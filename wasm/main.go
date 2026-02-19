@@ -61,7 +61,29 @@ func computeMetrics(_ js.Value, args []js.Value) interface{} {
 		results[i] = pgforecast.ComputeHourlyMetrics(&h, site, tc)
 	}
 
-	out, err := json.Marshal(results)
+	// Build output with display config included
+	type wasmOutput struct {
+		Metrics []pgforecast.HourlyMetrics `json:"metrics"`
+		Display pgforecast.DisplayConfig   `json:"display"`
+		// Wind thresholds for the frontend to derive breakpoints
+		WindThresholds struct {
+			IdealMin      float64 `json:"ideal_min"`
+			IdealMax      float64 `json:"ideal_max"`
+			AcceptableMax float64 `json:"acceptable_max"`
+			DangerousMax  float64 `json:"dangerous_max"`
+		} `json:"wind_thresholds"`
+	}
+
+	output := wasmOutput{
+		Metrics: results,
+		Display: tc.Display,
+	}
+	output.WindThresholds.IdealMin = tc.Wind.IdealMin
+	output.WindThresholds.IdealMax = tc.Wind.IdealMax
+	output.WindThresholds.AcceptableMax = tc.Wind.AcceptableMax
+	output.WindThresholds.DangerousMax = tc.Wind.DangerousMax
+
+	out, err := json.Marshal(output)
 	if err != nil {
 		return jsError("marshalling results: " + err.Error())
 	}

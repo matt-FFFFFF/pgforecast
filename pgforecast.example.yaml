@@ -59,3 +59,38 @@ xc:
   epic_threshold: 7        # XC score >= this = Epic
   high_threshold: 5        # XC score >= this = High
   medium_threshold: 3      # XC score >= this = Medium
+
+# Display configuration — colours, icons, and labels for wind strength and gradient.
+# Wind strength thresholds derive from wind.ideal_min, ideal_max, acceptable_max, dangerous_max.
+display:
+  wind_strength:
+    light:
+      rgb: "#4fd1c5"       # Teal — too light to fly
+      label: "Light"
+      icon: "💤"
+    moderate:
+      rgb: "#48bb78"       # Green — ideal flying wind
+      label: "Moderate"
+      icon: "✅"
+    fresh:
+      rgb: "#ecc94b"       # Yellow — acceptable but fresh
+      label: "Fresh"
+      icon: "⚠️"
+    strong:
+      rgb: "#ed8936"       # Orange — strong, caution
+      label: "Strong"
+      icon: "🟠"
+    very_strong:
+      rgb: "#f56565"       # Red — dangerous
+      label: "Very Strong"
+      icon: "🔴"
+  gradient:
+    low:
+      rgb: "#48bb78"       # Green — low gradient, safe
+      icon: "✅"
+    medium:
+      rgb: "#ecc94b"       # Yellow — moderate gradient
+      icon: "⚠️"
+    high:
+      rgb: "#f56565"       # Red — high gradient, turbulence risk
+      icon: "🔴"
