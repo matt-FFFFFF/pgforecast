@@ -120,8 +120,7 @@ var PRESSURE_ALTITUDES = {
   950: '~500m',
   925: '~750m',
   900: '~1000m',
-  850: '~1500m',
-  700: '~3000m'
+  850: '~1500m'
 };
 
 /**
@@ -168,7 +167,10 @@ function buildWindProfilePopup(h) {
 
   var rows = '';
   // Sort by pressure ascending (highest altitude first, surface at bottom)
-  var levels = h.pressure_levels.slice().sort(function (a, b) {
+  // Filter out levels not in PRESSURE_ALTITUDES (e.g. 700 hPa / 3000m)
+  var levels = h.pressure_levels.slice()
+    .filter(function (l) { return PRESSURE_ALTITUDES[l.pressure_hpa]; })
+    .sort(function (a, b) {
     return a.pressure_hpa - b.pressure_hpa;
   });
 
@@ -180,7 +182,7 @@ function buildWindProfilePopup(h) {
     rows += '<tr>' +
       '<td class="wp-alt">' + alt + '</td>' +
       '<td class="wp-arrow" style="color:' + colour + '">' + windArrow(level.wind_direction) + '</td>' +
-      '<td class="wp-dir">' + dir + '</td>' +
+      '<td class="wp-dir" style="color:' + colour + '">' + dir + '</td>' +
       '<td class="wp-speed" style="color:' + colour + '">' + level.wind_speed.toFixed(0) + '</td>' +
       '</tr>';
   });
@@ -190,7 +192,7 @@ function buildWindProfilePopup(h) {
   var surfRow = '<tr class="wp-surface">' +
     '<td class="wp-alt">Surface (10m)</td>' +
     '<td class="wp-arrow" style="color:' + surfColour + '">' + windArrow(h.wind_direction) + '</td>' +
-    '<td class="wp-dir">' + h.wind_dir_str + '</td>' +
+    '<td class="wp-dir" style="color:' + surfColour + '">' + h.wind_dir_str + '</td>' +
     '<td class="wp-speed" style="color:' + surfColour + '">' + h.wind_speed.toFixed(0) + '</td>' +
     '</tr>';
 
