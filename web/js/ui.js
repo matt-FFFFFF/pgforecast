@@ -475,13 +475,28 @@ function initWindProfilePopups() {
   var panel = document.getElementById('forecastPanel');
   if (!panel) return;
 
+  var activePopup = null;
+
   panel.addEventListener('mouseover', function (e) {
     var cell = e.target.closest('.wind-profile-cell');
-    if (!cell) return;
-    var popup = cell.querySelector('.wind-profile-popup');
-    if (!popup) return;
+    if (!cell) {
+      // Mouse moved to non-cell element — hide active popup
+      if (activePopup) {
+        activePopup.style.display = 'none';
+        activePopup = null;
+      }
+      return;
+    }
 
-    // Temporarily show to measure
+    var popup = cell.querySelector('.wind-profile-popup');
+    if (!popup || popup === activePopup) return;
+
+    // Hide previous popup
+    if (activePopup) {
+      activePopup.style.display = 'none';
+    }
+
+    // Measure popup size
     popup.style.visibility = 'hidden';
     popup.style.display = 'block';
     var popupRect = popup.getBoundingClientRect();
@@ -506,5 +521,13 @@ function initWindProfilePopups() {
 
     popup.style.top = top + 'px';
     popup.style.left = left + 'px';
+    activePopup = popup;
+  });
+
+  panel.addEventListener('mouseleave', function () {
+    if (activePopup) {
+      activePopup.style.display = 'none';
+      activePopup = null;
+    }
   });
 }
