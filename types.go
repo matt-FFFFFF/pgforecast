@@ -73,7 +73,8 @@ type HourlyMetrics struct {
 	FlyabilityScore  int       `json:"flyability_score"`   // 1-5
 	XCPotential      string    `json:"xc_potential"`       // Low/Medium/High/Epic
 	FreezingLevel    float64   `json:"freezing_level_ft"`
-	IsDay            bool      `json:"is_day"`
+	IsDay            bool             `json:"is_day"`
+	PressureLevels   []PressureLevel  `json:"pressure_levels"`
 }
 
 // DaySummary holds aggregated metrics for extended outlook days.
