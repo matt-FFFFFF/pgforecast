@@ -286,7 +286,7 @@ function renderForecast(forecast) {
         '<div class="summary-card"><div class="label">XC Potential</div><div class="value">' + (midHour ? midHour.xc_potential : 'N/A') + '</div></div>' +
       '</div>' +
       '<table class="hour-table">' +
-        '<tr><th>Time</th><th>Wind</th><th>Dir</th><th>Gust</th><th>Gradient</th><th>Thermal</th><th>Cloud</th><th>Rain</th><th>Score</th></tr>';
+        '<tr><th>Time</th><th>Wind</th><th>Dir</th><th>Gust</th><th>Gradient <span class="tooltip-trigger" title="Wind speed difference between 1000hPa (~sea level) and 850hPa (~1500m). High gradient means stronger winds aloft, indicating turbulence risk.">❓</span></th><th>Thermal</th><th>Cloud</th><th>Rain</th><th>Score</th></tr>';
 
     day.hours.forEach(function (h) {
       var t = new Date(h.time);

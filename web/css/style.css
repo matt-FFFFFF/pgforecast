@@ -527,3 +527,30 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* === Tooltip === */
+.tooltip-trigger {
+  cursor: help;
+  position: relative;
+  font-size: 0.75rem;
+}
+
+.tooltip-trigger:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  white-space: normal;
+  width: 240px;
+  z-index: 100;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
