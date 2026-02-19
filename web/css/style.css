@@ -162,7 +162,7 @@ body {
   left: 0;
   right: 0;
   height: 0;
-  z-index: 10;
+  z-index: 1000; /* Must be above Leaflet panes (z-index 200-800) */
   display: flex;
   flex-direction: column;
   transition: height 0.3s ease;
