@@ -44,6 +44,9 @@ func FetchWeather(site Site, opts ForecastOptions) ([]HourlyData, error) {
 
 // FetchWeatherWithContext fetches weather data from Open-Meteo with context support for cancellation.
 func FetchWeatherWithContext(ctx context.Context, site Site, opts ForecastOptions) ([]HourlyData, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	u, _ := url.Parse("https://api.open-meteo.com/v1/forecast")
 	q := u.Query()
 	q.Set("latitude", fmt.Sprintf("%.4f", site.Lat))

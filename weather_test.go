@@ -3,8 +3,8 @@ package pgforecast
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -134,16 +134,14 @@ func TestHTTPClientHasTimeout(t *testing.T) {
 }
 
 func TestFetchWeatherWithContext_Cancellation(t *testing.T) {
-	// Start a server that delays longer than our context
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(2 * time.Second)
-		w.WriteHeader(200)
-	}))
-	defer srv.Close()
-
-	// Temporarily override httpClient to point at test server (no timeout so we test context cancel)
+	// Use a custom RoundTripper that blocks until context is cancelled
 	origClient := httpClient
-	httpClient = &http.Client{Timeout: 0} // rely on context
+	httpClient = &http.Client{
+		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			<-req.Context().Done()
+			return nil, req.Context().Err()
+		}),
+	}
 	defer func() { httpClient = origClient }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
@@ -152,5 +150,28 @@ func TestFetchWeatherWithContext_Cancellation(t *testing.T) {
 	_, err := FetchWeatherWithContext(ctx, Site{Lat: 0, Lon: 0}, ForecastOptions{})
 	if err == nil {
 		t.Fatal("expected error from cancelled context")
+	}
+}
+
+// roundTripperFunc adapts a function to http.RoundTripper.
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func TestFetchWeatherWithContext_NilContext(t *testing.T) {
+	// Ensure nil context doesn't panic - just verify it doesn't crash
+	origClient := httpClient
+	httpClient = &http.Client{
+		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			return nil, fmt.Errorf("expected")
+		}),
+	}
+	defer func() { httpClient = origClient }()
+
+	_, err := FetchWeatherWithContext(nil, Site{}, ForecastOptions{})
+	if err == nil {
+		t.Fatal("expected error")
 	}
 }
