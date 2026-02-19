@@ -28,22 +28,6 @@ function starsHTML(count) {
 }
 
 /**
- * Return a CSS colour for the wind gradient severity, using config if available.
- * @param {string} gradient - Gradient label (e.g. "Low", "Medium", "High").
- * @returns {string} CSS colour string.
- */
-function gradientColour(gradient) {
-  if (displayConfig) {
-    if (gradient.includes('Low')) return displayConfig.gradient.low.rgb;
-    if (gradient.includes('Medium')) return displayConfig.gradient.medium.rgb;
-    return displayConfig.gradient.high.rgb;
-  }
-  if (gradient.includes('Low')) return '#48bb78';
-  if (gradient.includes('Medium')) return '#ecc94b';
-  return '#f56565';
-}
-
-/**
  * Return a CSS class name for the wind gradient severity.
  * @param {string} gradient - Gradient label (e.g. "Low", "Medium", "High").
  * @returns {string} CSS class name.
