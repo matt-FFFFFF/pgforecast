@@ -1,5 +1,6 @@
 # Binaries
 /pgforecast
+*.wasm
 
 # IDE
 .idea/

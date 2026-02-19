@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/matt-FFFFFF/pgforecast"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -58,7 +60,7 @@ func main() {
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	tc, err := pgforecast.LoadTuningConfig(cfgFile)
+	tc, err := loadTuningConfig(cfgFile)
 	if err != nil {
 		return fmt.Errorf("loading config: %w", err)
 	}
@@ -127,4 +129,79 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 	}
 	return nil
+}
+
+// loadTuningConfig loads tuning config from file, env vars, merging with defaults.
+func loadTuningConfig(configPath string) (*pgforecast.TuningConfig, error) {
+	v := viper.New()
+	v.SetEnvPrefix("PGF")
+	v.AutomaticEnv()
+
+	def := pgforecast.DefaultTuningConfig()
+	v.SetDefault("wind.ideal_min", def.Wind.IdealMin)
+	v.SetDefault("wind.ideal_max", def.Wind.IdealMax)
+	v.SetDefault("wind.acceptable_min", def.Wind.AcceptableMin)
+	v.SetDefault("wind.acceptable_max", def.Wind.AcceptableMax)
+	v.SetDefault("wind.dangerous_max", def.Wind.DangerousMax)
+	v.SetDefault("wind.max_gust_factor", def.Wind.MaxGustFactor)
+	v.SetDefault("wind.dangerous_gust_factor", def.Wind.DangerousGustFactor)
+	v.SetDefault("gradient.low_threshold", def.Gradient.LowThreshold)
+	v.SetDefault("gradient.high_threshold", def.Gradient.HighThreshold)
+	v.SetDefault("gradient.high_penalty", def.Gradient.HighPenalty)
+	v.SetDefault("gradient.medium_penalty", def.Gradient.MediumPenalty)
+	v.SetDefault("thermal.cape_weak", def.Thermal.CAPEWeak)
+	v.SetDefault("thermal.cape_moderate", def.Thermal.CAPEModerate)
+	v.SetDefault("thermal.cape_strong", def.Thermal.CAPEStrong)
+	v.SetDefault("thermal.cape_extreme", def.Thermal.CAPEExtreme)
+	v.SetDefault("thermal.lapse_rate_bonus", def.Thermal.LapseRateBonus)
+	v.SetDefault("orographic.min_wind_speed", def.Orographic.MinWindSpeed)
+	v.SetDefault("orographic.strong_angle", def.Orographic.StrongAngle)
+	v.SetDefault("orographic.moderate_angle", def.Orographic.ModerateAngle)
+	v.SetDefault("orographic.weak_angle", def.Orographic.WeakAngle)
+	v.SetDefault("cloudbase.min_realistic_ft", def.Cloudbase.MinRealisticFt)
+	v.SetDefault("scoring.base_score", def.Scoring.BaseScore)
+	v.SetDefault("scoring.wind_ideal_bonus", def.Scoring.WindIdealBonus)
+	v.SetDefault("scoring.wind_acceptable_bonus", def.Scoring.WindAcceptableBonus)
+	v.SetDefault("scoring.wind_danger_penalty", def.Scoring.WindDangerPenalty)
+	v.SetDefault("scoring.wind_high_penalty", def.Scoring.WindHighPenalty)
+	v.SetDefault("scoring.dir_on_bonus", def.Scoring.DirOnBonus)
+	v.SetDefault("scoring.dir_off_penalty", def.Scoring.DirOffPenalty)
+	v.SetDefault("scoring.gust_high_penalty", def.Scoring.GustHighPenalty)
+	v.SetDefault("scoring.gust_med_penalty", def.Scoring.GustMedPenalty)
+	v.SetDefault("scoring.rain_penalty", def.Scoring.RainPenalty)
+	v.SetDefault("scoring.rain_prob_penalty", def.Scoring.RainProbPenalty)
+	v.SetDefault("scoring.gradient_high_penalty", def.Scoring.GradientHighPenalty)
+	v.SetDefault("scoring.gradient_med_penalty", def.Scoring.GradientMedPenalty)
+	v.SetDefault("scoring.cape_bonus", def.Scoring.CAPEBonus)
+	v.SetDefault("scoring.thermal_strong_bonus", def.Scoring.ThermalStrongBonus)
+	v.SetDefault("xc.min_cloudbase_ft", def.XC.MinCloudbaseFt)
+	v.SetDefault("xc.good_cloudbase_ft", def.XC.GoodCloudbaseFt)
+	v.SetDefault("xc.max_wind_speed", def.XC.MaxWindSpeed)
+	v.SetDefault("xc.min_wind_speed", def.XC.MinWindSpeed)
+	v.SetDefault("xc.epic_threshold", def.XC.EpicThreshold)
+	v.SetDefault("xc.high_threshold", def.XC.HighThreshold)
+	v.SetDefault("xc.medium_threshold", def.XC.MediumThreshold)
+
+	if configPath != "" {
+		v.SetConfigFile(configPath)
+	} else {
+		v.SetConfigName("pgforecast")
+		v.AddConfigPath(".")
+		home, err := os.UserHomeDir()
+		if err == nil {
+			v.AddConfigPath(filepath.Join(home, ".config", "pgforecast"))
+		}
+	}
+
+	if err := v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok && configPath != "" {
+			return nil, fmt.Errorf("reading config: %w", err)
+		}
+	}
+
+	tc := pgforecast.DefaultTuningConfig()
+	if err := v.Unmarshal(tc); err != nil {
+		return nil, fmt.Errorf("unmarshalling config: %w", err)
+	}
+	return tc, nil
 }
