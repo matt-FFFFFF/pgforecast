@@ -93,7 +93,7 @@ body {
 
 .layout {
   display: flex;
-  height: calc(100vh - 50px);
+  height: calc(100vh - 50px - env(safe-area-inset-top, 0px));
 }
 
 /* --- Sidebar overlay (mobile) --- */
@@ -540,7 +540,7 @@ body {
     max-height: none;
     border-right: 1px solid var(--border);
     border-bottom: none;
-    z-index: 100;
+    z-index: 2000;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
     padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
@@ -558,7 +558,7 @@ body {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 99;
+    z-index: 1999;
   }
 
   .sidebar-overlay.open {
