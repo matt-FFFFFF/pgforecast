@@ -86,5 +86,5 @@ async function loadWasm() {
   );
   go.run(result.instance);
   wasmReady = true;
-  document.getElementById('wasmStatus').innerHTML = '✅ WASM ready';
+  document.getElementById('wasmStatus').innerHTML = '✅ Ready';
 }
