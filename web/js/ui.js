@@ -216,8 +216,9 @@ async function selectSite(name) {
 }
 
 /**
- * Group an array of hourly metrics by date, keeping only 08:00–18:00 UTC.
- * @param {Array<Object>} metrics - Hourly metric objects with a `time` field.
+ * Group an array of hourly metrics by date, keeping only daylight hours.
+ * Uses the is_day field from Open-Meteo (based on solar position at the site).
+ * @param {Array<Object>} metrics - Hourly metric objects with `time` and `is_day` fields.
  * @returns {Array<{date: string, hours: Array<Object>}>} Grouped days.
  */
 function groupByDay(metrics) {
@@ -227,9 +228,8 @@ function groupByDay(metrics) {
   metrics.forEach(function (hour) {
     var dt = new Date(hour.time);
     var dateKey = dt.toISOString().slice(0, 10);
-    var utcHour = dt.getUTCHours();
 
-    if (utcHour < 8 || utcHour > 18) return;
+    if (!hour.is_day) return;
 
     if (!dayMap[dateKey]) {
       dayMap[dateKey] = [];
