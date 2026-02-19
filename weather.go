@@ -8,12 +8,18 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 )
 
-// httpClient is the HTTP client used for API requests, with a default 30s timeout.
-var httpClient = &http.Client{Timeout: 30 * time.Second}
+// HTTPDoer is an interface for making HTTP requests, implemented by *http.Client.
+type HTTPDoer interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// defaultHTTPClient is the default HTTP client used when none is provided via ForecastOptions.
+var defaultHTTPClient HTTPDoer = &http.Client{Timeout: 30 * time.Second}
 
 // maxResponseSize is the maximum allowed response body size (10 MB).
 const maxResponseSize = 10 * 1024 * 1024
@@ -69,7 +75,12 @@ func FetchWeatherWithContext(ctx context.Context, site Site, opts ForecastOption
 		return nil, fmt.Errorf("creating request: %w", err)
 	}
 
-	resp, err := httpClient.Do(req)
+	client := opts.HTTPClient
+	if client == nil || (reflect.ValueOf(client).Kind() == reflect.Ptr && reflect.ValueOf(client).IsNil()) {
+		client = defaultHTTPClient
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("fetching weather: %w", err)
 	}

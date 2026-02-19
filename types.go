@@ -115,5 +115,6 @@ type ForecastOptions struct {
 	Timezone     string
 	Model        string
 	OutputFormat string // text, json
+	HTTPClient   HTTPDoer // optional; if nil, a standard http.Client with 30s timeout is used. A typed-nil (e.g., (*http.Client)(nil)) is treated as nil and falls back to the default.
 	Tuning       *TuningConfig
 }
