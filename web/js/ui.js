@@ -136,31 +136,6 @@ function windArrow(deg) {
 }
 
 /**
- * Cached display config from the WASM output.
- * Set by selectSite when WASM returns results.
- * @type {Object|null}
- */
-var displayConfig = null;
-
-/**
- * Cached wind thresholds from the WASM output.
- * @type {Object|null}
- */
-var windThresholds = null;
-
-/**
- * Apply display config colours as CSS custom properties on :root.
- * This allows CSS gradient classes to use config-driven colours.
- * @param {Object} dc - Display config object from WASM.
- */
-function applyDisplayConfigCSS(dc) {
-  var root = document.documentElement;
-  root.style.setProperty('--good', dc.gradient.low.rgb);
-  root.style.setProperty('--warn', dc.gradient.medium.rgb);
-  root.style.setProperty('--bad', dc.gradient.high.rgb);
-}
-
-/**
  * Get a colour for wind speed (mph) using config-driven thresholds.
  * Falls back to hardcoded values if config not loaded.
  * Thresholds derive from wind tuning: ideal_min, ideal_max, acceptable_max, dangerous_max.
