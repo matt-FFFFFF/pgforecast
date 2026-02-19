@@ -331,5 +331,6 @@ func ComputeHourlyMetrics(h *HourlyData, site Site, tc *TuningConfig) HourlyMetr
 		XCPotential:      CalcXCPotential(h.CAPE, cloudbase, h.WindSpeed, thermalRating, tc),
 		FreezingLevel:    h.FreezingLevelHeight * 3.28084,
 		IsDay:            h.IsDay == 1,
+		PressureLevels:   h.PressureLevels,
 	}
 }

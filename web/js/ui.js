@@ -108,6 +108,87 @@ function escHtml(str) {
 }
 
 /**
+ * Map pressure level (hPa) to approximate altitude string.
+ */
+var PRESSURE_ALTITUDES = {
+  1000: '~100m',
+  950: '~500m',
+  925: '~750m',
+  900: '~1000m',
+  850: '~1500m',
+  700: '~3000m'
+};
+
+/**
+ * Get a wind direction arrow character rotated to the given degrees.
+ * Uses CSS transform to rotate a single arrow character.
+ * @param {number} deg - Wind direction in degrees (where wind comes FROM).
+ * @returns {string} HTML span with rotated arrow.
+ */
+function windArrow(deg) {
+  // Arrow points FROM the wind direction (same convention as compass label)
+  return '<span class="wind-arrow" style="transform:rotate(' + deg + 'deg)">↓</span>';
+}
+
+/**
+ * Get a colour for wind speed (mph) — green for light, yellow moderate, red strong.
+ * @param {number} speed - Wind speed in mph.
+ * @returns {string} CSS colour.
+ */
+function windSpeedColour(speed) {
+  if (speed <= 8) return '#48bb78';   // light — green
+  if (speed <= 15) return '#4fd1c5';  // moderate — teal
+  if (speed <= 22) return '#ecc94b';  // fresh — yellow
+  if (speed <= 30) return '#ed8936';  // strong — orange
+  return '#f56565';                    // very strong — red
+}
+
+/**
+ * Build the HTML for a wind profile popup showing wind at each pressure level.
+ * @param {Object} h - HourlyMetrics object with pressure_levels array.
+ * @returns {string} HTML string for the popup div.
+ */
+function buildWindProfilePopup(h) {
+  if (!h.pressure_levels || h.pressure_levels.length === 0) return '';
+
+  var rows = '';
+  // Sort by pressure descending (lowest altitude first)
+  var levels = h.pressure_levels.slice().sort(function (a, b) {
+    return b.pressure_hpa - a.pressure_hpa;
+  });
+
+  levels.forEach(function (level) {
+    var alt = PRESSURE_ALTITUDES[level.pressure_hpa] || level.pressure_hpa + 'hPa';
+    var colour = windSpeedColour(level.wind_speed);
+    var dir = compassDir(level.wind_direction);
+
+    rows += '<tr>' +
+      '<td class="wp-alt">' + alt + '</td>' +
+      '<td class="wp-arrow" style="color:' + colour + '">' + windArrow(level.wind_direction) + '</td>' +
+      '<td class="wp-dir">' + dir + '</td>' +
+      '<td class="wp-speed" style="color:' + colour + '">' + level.wind_speed.toFixed(0) + '</td>' +
+      '</tr>';
+  });
+
+  // Add surface wind as first row
+  var surfColour = windSpeedColour(h.wind_speed);
+  var surfRow = '<tr class="wp-surface">' +
+    '<td class="wp-alt">Surface (10m)</td>' +
+    '<td class="wp-arrow" style="color:' + surfColour + '">' + windArrow(h.wind_direction) + '</td>' +
+    '<td class="wp-dir">' + h.wind_dir_str + '</td>' +
+    '<td class="wp-speed" style="color:' + surfColour + '">' + h.wind_speed.toFixed(0) + '</td>' +
+    '</tr>';
+
+  return '<div class="wind-profile-popup">' +
+    '<div class="wp-title">Wind Profile</div>' +
+    '<table class="wp-table">' +
+      '<tr><th>Altitude</th><th></th><th>Dir</th><th>mph</th></tr>' +
+      surfRow + rows +
+    '</table>' +
+  '</div>';
+}
+
+/**
  * Render the site list in the sidebar.
  * Reads from SITES, siteForecasts, and selectedSite globals.
  */
@@ -302,9 +383,11 @@ function renderForecast(forecast) {
         '<td>' + h.wind_speed.toFixed(0) + '</td>' +
         '<td>' + h.wind_dir_str + '</td>' +
         '<td>' + h.wind_gusts.toFixed(0) + '</td>' +
-        '<td class="' + gradientClass(h.wind_gradient) + '">' +
+        '<td class="' + gradientClass(h.wind_gradient) + ' wind-profile-cell">' +
           gradientIcon(h.wind_gradient) + ' ' + h.wind_gradient +
-          '(+' + h.wind_gradient_diff.toFixed(0) + ')</td>' +
+          '(+' + h.wind_gradient_diff.toFixed(0) + ')' +
+          buildWindProfilePopup(h) +
+        '</td>' +
         '<td>' + thermalIcon(h.thermal_rating) + ' ' + h.thermal_rating + '</td>' +
         '<td>' + cloudIcon(h.cloud_cover) + '</td>' +
         '<td>' + rainStr(h.precipitation, h.precip_probability) + '</td>' +
@@ -381,4 +464,47 @@ function renderForecast(forecast) {
  */
 function setStatus(message) {
   document.getElementById('statusBar').textContent = message;
+}
+
+/**
+ * Initialise wind profile popup positioning.
+ * Called from app.js init() after DOM is ready.
+ * Uses event delegation on the forecast panel.
+ */
+function initWindProfilePopups() {
+  var panel = document.getElementById('forecastPanel');
+  if (!panel) return;
+
+  panel.addEventListener('mouseover', function (e) {
+    var cell = e.target.closest('.wind-profile-cell');
+    if (!cell) return;
+    var popup = cell.querySelector('.wind-profile-popup');
+    if (!popup) return;
+
+    // Temporarily show to measure
+    popup.style.visibility = 'hidden';
+    popup.style.display = 'block';
+    var popupRect = popup.getBoundingClientRect();
+    popup.style.visibility = '';
+
+    var cellRect = cell.getBoundingClientRect();
+
+    // Position above the cell, centered
+    var top = cellRect.top - popupRect.height - 4;
+    var left = cellRect.left + cellRect.width / 2 - popupRect.width / 2;
+
+    // If above viewport, show below
+    if (top < 8) {
+      top = cellRect.bottom + 4;
+    }
+
+    // Keep within viewport horizontally
+    if (left < 8) left = 8;
+    if (left + popupRect.width > window.innerWidth - 8) {
+      left = window.innerWidth - popupRect.width - 8;
+    }
+
+    popup.style.top = top + 'px';
+    popup.style.left = left + 'px';
+  });
 }

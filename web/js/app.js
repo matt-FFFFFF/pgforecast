@@ -96,6 +96,7 @@ async function init() {
 
   initMap();
   renderSiteList();
+  initWindProfilePopups();
 
   try {
     await loadWasm();
