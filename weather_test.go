@@ -1,9 +1,11 @@
 package pgforecast
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -158,6 +160,34 @@ type roundTripperFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
+}
+
+func TestFetchWeatherWithContext_OversizedResponse(t *testing.T) {
+	origClient := httpClient
+	// Return a response larger than maxResponseSize — the JSON decoder should fail
+	// because the body is truncated mid-stream by LimitReader.
+	hugeBody := make([]byte, maxResponseSize+1024)
+	for i := range hugeBody {
+		hugeBody[i] = ' '
+	}
+	// Start with valid-looking JSON that won't fully decode
+	copy(hugeBody, []byte(`{"hourly":{"time":[`))
+
+	httpClient = &http.Client{
+		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader(hugeBody)),
+				Header:     make(http.Header),
+			}, nil
+		}),
+	}
+	defer func() { httpClient = origClient }()
+
+	_, err := FetchWeatherWithContext(context.Background(), Site{}, ForecastOptions{})
+	if err == nil {
+		t.Fatal("expected error for oversized response")
+	}
 }
 
 func TestFetchWeatherWithContext_NilContext(t *testing.T) {
