@@ -19,63 +19,93 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
-  
+
   .header { padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid var(--border); }
   .header h1 { font-size: 1.5rem; font-weight: 600; }
   .header h1 span { font-size: 1.8rem; }
-  
+  .header-actions { margin-left: auto; display: flex; gap: 0.5rem; }
+  .header-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.15s; }
+  .header-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .header-btn.active { background: rgba(79,209,197,0.15); border-color: var(--accent); color: var(--accent); }
+
   .layout { display: flex; height: calc(100vh - 60px); }
-  
+
   .sidebar { width: 320px; overflow-y: auto; border-right: 1px solid var(--border); flex-shrink: 0; }
   .sidebar-header { padding: 0.75rem 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
-  
+
   .site-item { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; display: flex; align-items: center; justify-content: space-between; }
   .site-item:hover { background: rgba(79, 209, 197, 0.08); }
   .site-item.active { background: rgba(79, 209, 197, 0.15); border-left: 3px solid var(--accent); }
-  .site-item.loading { opacity: 0.5; }
   .site-name { font-weight: 500; font-size: 0.9rem; }
   .site-meta { color: var(--muted); font-size: 0.75rem; margin-top: 2px; }
   .site-score { font-size: 1.1rem; min-width: 80px; text-align: right; }
-  
+
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  
+
   #map { height: 300px; flex-shrink: 0; }
-  
+
   .forecast-panel { flex: 1; overflow-y: auto; padding: 1.5rem; }
-  
+
+  /* Tuning panel */
+  .tuning-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; }
+  .tuning-overlay.open { display: flex; justify-content: center; align-items: flex-start; padding-top: 60px; }
+  .tuning-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; width: 700px; max-height: 80vh; overflow-y: auto; padding: 1.5rem; }
+  .tuning-panel h2 { font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
+  .tuning-section { margin-bottom: 1.25rem; }
+  .tuning-section h3 { font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border); }
+  .tuning-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1.5rem; }
+  .tuning-field { display: flex; align-items: center; gap: 0.5rem; }
+  .tuning-field label { flex: 1; font-size: 0.78rem; color: var(--muted); }
+  .tuning-field input { width: 80px; background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.5rem; border-radius: 4px; font-size: 0.8rem; text-align: right; }
+  .tuning-field input:focus { outline: none; border-color: var(--accent); }
+  .tuning-field input.changed { border-color: var(--warn); background: rgba(236,201,75,0.08); }
+  .tuning-actions { display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .tuning-actions button { padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; font-size: 0.85rem; }
+  .btn-apply { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .btn-apply:hover { opacity: 0.9; }
+  .btn-reset { background: transparent; color: var(--bad); border-color: var(--bad); }
+  .btn-reset:hover { background: rgba(245,101,101,0.1); }
+  .btn-close { background: transparent; color: var(--muted); }
+  .btn-close:hover { color: var(--text); }
+  .btn-export { background: transparent; color: var(--accent); border-color: var(--accent); }
+  .btn-export:hover { background: rgba(79,209,197,0.1); }
+  .tuning-badge { font-size: 0.65rem; background: var(--warn); color: var(--bg); padding: 0.1rem 0.4rem; border-radius: 8px; font-weight: 600; }
+
   .day-section { margin-bottom: 1.5rem; }
   .day-header { font-size: 1.1rem; font-weight: 600; padding: 0.5rem 0; border-bottom: 2px solid var(--border); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
   .day-label { color: var(--accent); }
-  
+
   .hour-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
   .hour-table th { text-align: left; color: var(--muted); font-weight: 500; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
   .hour-table td { padding: 0.35rem 0.5rem; border-bottom: 1px solid rgba(45,55,72,0.5); white-space: nowrap; }
   .hour-table tr:hover { background: rgba(79, 209, 197, 0.05); }
-  
+
   .stars { letter-spacing: -2px; }
   .gradient-low { color: var(--good); }
   .gradient-med { color: var(--warn); }
   .gradient-high { color: var(--bad); }
   .rain { color: #63b3ed; }
-  
+
   .summary-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 0.75rem; }
   .summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; }
   .summary-card .label { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; margin-bottom: 0.25rem; }
   .summary-card .value { font-size: 1.2rem; font-weight: 600; }
-  
+
   .extended-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   .extended-table th { text-align: left; color: var(--muted); font-weight: 500; padding: 0.5rem; border-bottom: 1px solid var(--border); }
   .extended-table td { padding: 0.5rem; border-bottom: 1px solid rgba(45,55,72,0.5); }
-  
+
   .status-bar { padding: 0.5rem 1rem; background: var(--card); border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); }
-  
+
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--muted); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  
+
   @media (max-width: 768px) {
     .layout { flex-direction: column; }
     .sidebar { width: 100%; height: auto; max-height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
     #map { height: 200px; }
+    .tuning-panel { width: 95%; margin: 0 auto; }
+    .tuning-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -84,6 +114,13 @@
 <div class="header">
   <h1><span>🪂</span> PG Forecast</h1>
   <div id="wasmStatus" style="font-size: 0.8rem; color: var(--muted);"><span class="spinner"></span> Loading WASM…</div>
+  <div class="header-actions">
+    <button class="header-btn" id="tuningBtn" onclick="toggleTuning()">⚙️ Tuning</button>
+  </div>
+</div>
+
+<div class="tuning-overlay" id="tuningOverlay" onclick="if(event.target===this)closeTuning()">
+  <div class="tuning-panel" id="tuningPanel"></div>
 </div>
 
 <div class="layout">
@@ -104,6 +141,276 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="wasm_exec.js"></script>
 <script>
+// === Tuning system ===
+const TUNING_STORAGE_KEY = 'pgforecast_tuning';
+let defaultTuning = null; // loaded from tuning.json
+let activeTuning = null;  // current active tuning (may have user overrides)
+
+const TUNING_LABELS = {
+  wind: {
+    _title: 'Wind',
+    ideal_min: 'Ideal min (mph)',
+    ideal_max: 'Ideal max (mph)',
+    acceptable_min: 'Acceptable min (mph)',
+    acceptable_max: 'Acceptable max (mph)',
+    dangerous_max: 'Dangerous max (mph)',
+    max_gust_factor: 'Max gust factor',
+    dangerous_gust_factor: 'Dangerous gust factor',
+  },
+  gradient: {
+    _title: 'Wind Gradient',
+    low_threshold: 'Low threshold (mph diff)',
+    high_threshold: 'High threshold (mph diff)',
+    high_penalty: 'High penalty',
+    medium_penalty: 'Medium penalty',
+  },
+  thermal: {
+    _title: 'Thermals',
+    cape_weak: 'CAPE weak (J/kg)',
+    cape_moderate: 'CAPE moderate',
+    cape_strong: 'CAPE strong',
+    cape_extreme: 'CAPE extreme',
+    lapse_rate_bonus: 'Lapse rate bonus (°C/km)',
+  },
+  orographic: {
+    _title: 'Orographic Lift',
+    min_wind_speed: 'Min wind speed (mph)',
+    strong_angle: 'Strong angle (°)',
+    moderate_angle: 'Moderate angle (°)',
+    weak_angle: 'Weak angle (°)',
+  },
+  cloudbase: {
+    _title: 'Cloudbase',
+    min_realistic_ft: 'Min realistic (ft)',
+  },
+  scoring: {
+    _title: 'Flyability Scoring',
+    base_score: 'Base score',
+    wind_ideal_bonus: 'Wind ideal bonus',
+    wind_acceptable_bonus: 'Wind acceptable bonus',
+    wind_danger_penalty: 'Wind danger penalty',
+    wind_high_penalty: 'Wind high penalty',
+    dir_on_bonus: 'Direction on-site bonus',
+    dir_off_penalty: 'Direction off-site penalty',
+    gust_high_penalty: 'Gust high penalty',
+    gust_med_penalty: 'Gust medium penalty',
+    rain_penalty: 'Rain penalty',
+    rain_prob_penalty: 'Rain probability penalty',
+    gradient_high_penalty: 'Gradient high penalty',
+    gradient_med_penalty: 'Gradient medium penalty',
+    cape_bonus: 'CAPE bonus',
+    thermal_strong_bonus: 'Thermal strong bonus',
+  },
+  xc: {
+    _title: 'XC Potential',
+    min_cloudbase_ft: 'Min cloudbase (ft)',
+    good_cloudbase_ft: 'Good cloudbase (ft)',
+    max_wind_speed: 'Max wind speed (mph)',
+    min_wind_speed: 'Min wind speed (mph)',
+    epic_threshold: 'Epic threshold',
+    high_threshold: 'High threshold',
+    medium_threshold: 'Medium threshold',
+  },
+};
+
+async function loadTuning() {
+  // Load defaults from static file
+  try {
+    const resp = await fetch('tuning.json');
+    defaultTuning = await resp.json();
+  } catch (e) {
+    // Fall back to WASM defaults
+    if (wasmReady) {
+      defaultTuning = JSON.parse(pgforecastWasm.defaultTuning());
+    }
+  }
+
+  // Check localStorage for user overrides
+  const stored = localStorage.getItem(TUNING_STORAGE_KEY);
+  if (stored) {
+    try {
+      activeTuning = JSON.parse(stored);
+      updateTuningBadge(true);
+    } catch (e) {
+      activeTuning = JSON.parse(JSON.stringify(defaultTuning));
+    }
+  } else {
+    activeTuning = JSON.parse(JSON.stringify(defaultTuning));
+  }
+}
+
+function getTuningJSON() {
+  return JSON.stringify(activeTuning);
+}
+
+function hasCustomTuning() {
+  return JSON.stringify(activeTuning) !== JSON.stringify(defaultTuning);
+}
+
+function updateTuningBadge(custom) {
+  const btn = document.getElementById('tuningBtn');
+  if (custom) {
+    btn.classList.add('active');
+    btn.innerHTML = '⚙️ Tuning <span class="tuning-badge">CUSTOM</span>';
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = '⚙️ Tuning';
+  }
+}
+
+function toggleTuning() {
+  const overlay = document.getElementById('tuningOverlay');
+  if (overlay.classList.contains('open')) {
+    closeTuning();
+  } else {
+    openTuning();
+  }
+}
+
+function openTuning() {
+  renderTuningPanel();
+  document.getElementById('tuningOverlay').classList.add('open');
+}
+
+function closeTuning() {
+  document.getElementById('tuningOverlay').classList.remove('open');
+}
+
+function renderTuningPanel() {
+  const panel = document.getElementById('tuningPanel');
+  let html = `<h2>⚙️ Scoring Parameters <button class="btn-close" onclick="closeTuning()">✕</button></h2>`;
+
+  for (const [section, labels] of Object.entries(TUNING_LABELS)) {
+    const title = labels._title;
+    html += `<div class="tuning-section"><h3>${title}</h3><div class="tuning-grid">`;
+    for (const [key, label] of Object.entries(labels)) {
+      if (key === '_title') continue;
+      const val = activeTuning[section][key];
+      const def = defaultTuning[section][key];
+      const changed = val !== def;
+      html += `<div class="tuning-field">
+        <label title="Default: ${def}">${label}</label>
+        <input type="number" step="any" value="${val}" data-section="${section}" data-key="${key}"
+               class="${changed ? 'changed' : ''}" onchange="onTuningInput(this)" />
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  html += `<div class="tuning-actions">
+    <button class="btn-apply" onclick="applyTuning()">Apply & Rescore</button>
+    <button class="btn-reset" onclick="resetTuning()">Reset to Defaults</button>
+    <button class="btn-export" onclick="exportTuning()">📋 Export JSON</button>
+    <button class="btn-close" onclick="importTuning()">📂 Import JSON</button>
+  </div>`;
+
+  panel.innerHTML = html;
+}
+
+function onTuningInput(el) {
+  const section = el.dataset.section;
+  const key = el.dataset.key;
+  const val = parseFloat(el.value);
+  if (isNaN(val)) return;
+  activeTuning[section][key] = val;
+  const def = defaultTuning[section][key];
+  el.classList.toggle('changed', val !== def);
+}
+
+function applyTuning() {
+  // Save to localStorage
+  if (hasCustomTuning()) {
+    localStorage.setItem(TUNING_STORAGE_KEY, JSON.stringify(activeTuning));
+    updateTuningBadge(true);
+  } else {
+    localStorage.removeItem(TUNING_STORAGE_KEY);
+    updateTuningBadge(false);
+  }
+
+  // Clear cached forecasts and rescore
+  const cachedWeather = {};
+  for (const [name, fc] of Object.entries(siteForecasts)) {
+    if (fc._weatherJSON) cachedWeather[name] = fc._weatherJSON;
+  }
+  siteForecasts = {};
+  rescoreAll(cachedWeather);
+  closeTuning();
+  setStatus('Tuning applied — rescoring all sites…');
+}
+
+function resetTuning() {
+  activeTuning = JSON.parse(JSON.stringify(defaultTuning));
+  localStorage.removeItem(TUNING_STORAGE_KEY);
+  updateTuningBadge(false);
+  renderTuningPanel();
+
+  const cachedWeather = {};
+  for (const [name, fc] of Object.entries(siteForecasts)) {
+    if (fc._weatherJSON) cachedWeather[name] = fc._weatherJSON;
+  }
+  siteForecasts = {};
+  rescoreAll(cachedWeather);
+  setStatus('Tuning reset to defaults — rescored');
+}
+
+function exportTuning() {
+  const blob = new Blob([JSON.stringify(activeTuning, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'pgforecast-tuning.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importTuning() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const imported = JSON.parse(text);
+      // Validate it has expected sections
+      for (const section of Object.keys(TUNING_LABELS)) {
+        if (!imported[section]) throw new Error(`Missing section: ${section}`);
+      }
+      activeTuning = imported;
+      renderTuningPanel();
+      setStatus('Tuning imported — click Apply to rescore');
+    } catch (err) {
+      alert('Invalid tuning file: ' + err.message);
+    }
+  };
+  input.click();
+}
+
+async function rescoreAll(cachedWeather) {
+  for (const site of SITES) {
+    try {
+      const weatherJSON = cachedWeather[site.name] || await fetchWeather(site);
+      const siteJSON = JSON.stringify(site);
+      const tuningJSON = getTuningJSON();
+      const resultJSON = pgforecastWasm.computeMetrics(weatherJSON, siteJSON, tuningJSON);
+      const metrics = JSON.parse(resultJSON);
+      if (!metrics.error) {
+        const days = groupByDay(metrics);
+        let bestScore = 0;
+        days.slice(0, 3).forEach(d => d.hours.forEach(h => { if (h.flyability_score > bestScore) bestScore = h.flyability_score; }));
+        siteForecasts[site.name] = { site, days, bestScore, _weatherJSON: weatherJSON };
+        updateMarkerColor(site.name, bestScore);
+      }
+    } catch (e) { /* skip */ }
+    renderSiteList();
+  }
+  if (selectedSite && siteForecasts[selectedSite]) {
+    renderForecast(siteForecasts[selectedSite]);
+  }
+  setStatus('All sites rescored');
+}
+
 // === Sites database ===
 const SITES = [
   { name: "Ballard Down", lat: 50.6308, lon: -1.9472, elevation: 100, wind_min: 140, wind_max: 185, best_dir: 170, aspect: 170 },
@@ -156,7 +463,7 @@ async function fetchWeather(site) {
   const url = buildOpenMeteoURL(site.lat, site.lon);
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`API ${resp.status}`);
-  return await resp.text(); // Return raw JSON string for WASM
+  return await resp.text();
 }
 
 // === WASM loading ===
@@ -204,34 +511,27 @@ function compassDir(deg) {
   return dirs[Math.round(deg / 22.5) % 16];
 }
 
-function starsHTML(n) {
-  return '⭐'.repeat(n);
-}
+function starsHTML(n) { return '⭐'.repeat(n); }
 
 function gradientClass(g) {
   if (g.includes('Low')) return 'gradient-low';
   if (g.includes('Medium')) return 'gradient-med';
   return 'gradient-high';
 }
-
 function gradientIcon(g) {
   if (g.includes('Low')) return '✅';
   if (g.includes('Medium')) return '⚠️';
   return '🔴';
 }
-
 function thermalIcon(t) {
-  const icons = { None: '❄️', Weak: '🌤', Moderate: '☀️', Strong: '🔥', Extreme: '⚡' };
-  return icons[t] || '❓';
+  return { None:'❄️', Weak:'🌤', Moderate:'☀️', Strong:'🔥', Extreme:'⚡' }[t] || '❓';
 }
-
 function cloudIcon(cover) {
   if (cover < 20) return '☀️';
   if (cover < 50) return '⛅';
   if (cover < 80) return '🌥';
   return '☁️';
 }
-
 function rainStr(precip, prob) {
   if (precip > 0) return `<span class="rain">🌧${precip.toFixed(1)}</span>`;
   if (prob > 30) return `${prob.toFixed(0)}%`;
@@ -255,45 +555,34 @@ function renderSiteList() {
 async function selectSite(name) {
   selectedSite = name;
   renderSiteList();
-  
   const site = SITES.find(s => s.name === name);
   if (!site) return;
-  
   map.flyTo([site.lat, site.lon], 12, { duration: 0.5 });
-  
   const panel = document.getElementById('forecastPanel');
-  
+
   if (siteForecasts[name]) {
     renderForecast(siteForecasts[name]);
     return;
   }
-  
+
   panel.innerHTML = '<p style="text-align:center;padding:2rem;"><span class="spinner"></span> Fetching forecast…</p>';
   setStatus(`Fetching weather for ${name}…`);
-  
+
   try {
     const weatherJSON = await fetchWeather(site);
     setStatus(`Computing metrics for ${name}…`);
-    
-    if (!wasmReady) {
-      panel.innerHTML = '<p style="color:var(--bad);text-align:center;padding:2rem;">WASM not loaded yet</p>';
-      return;
-    }
-    
+    if (!wasmReady) { panel.innerHTML = '<p style="color:var(--bad);text-align:center;padding:2rem;">WASM not loaded yet</p>'; return; }
+
     const siteJSON = JSON.stringify(site);
-    const resultJSON = pgforecastWasm.computeMetrics(weatherJSON, siteJSON);
+    const tuningJSON = getTuningJSON();
+    const resultJSON = pgforecastWasm.computeMetrics(weatherJSON, siteJSON, tuningJSON);
     const metrics = JSON.parse(resultJSON);
-    
-    if (metrics.error) {
-      panel.innerHTML = `<p style="color:var(--bad);text-align:center;padding:2rem;">Error: ${metrics.error}</p>`;
-      return;
-    }
-    
-    // Group by day, filter 8-18h
+    if (metrics.error) { panel.innerHTML = `<p style="color:var(--bad);text-align:center;padding:2rem;">Error: ${metrics.error}</p>`; return; }
+
     const days = groupByDay(metrics);
-    const forecast = { site, days, bestScore: 0 };
+    const forecast = { site, days, bestScore: 0, _weatherJSON: weatherJSON };
     days.forEach(d => d.hours.forEach(h => { if (h.flyability_score > forecast.bestScore) forecast.bestScore = h.flyability_score; }));
-    
+
     siteForecasts[name] = forecast;
     updateMarkerColor(name, forecast.bestScore);
     renderSiteList();
@@ -306,8 +595,7 @@ async function selectSite(name) {
 }
 
 function groupByDay(metrics) {
-  const dayMap = {};
-  const order = [];
+  const dayMap = {}, order = [];
   metrics.forEach(m => {
     const dt = new Date(m.time);
     const key = dt.toISOString().slice(0, 10);
@@ -324,20 +612,16 @@ function renderForecast(forecast) {
   const days = forecast.days;
   const detailedDays = days.slice(0, 3);
   const extendedDays = days.slice(3);
-  
   let html = '';
-  
-  // Detailed days
+
   detailedDays.forEach((day, i) => {
     const dt = new Date(day.date + 'T12:00:00Z');
     const label = i === 0 ? 'TODAY' : i === 1 ? 'TOMORROW' : dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
     const dayLabel = dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    
-    // Summary cards
     const midHour = day.hours[Math.floor(day.hours.length / 2)] || day.hours[0];
     const bestScore = Math.max(...day.hours.map(h => h.flyability_score));
-    const cloudbaseFt = midHour ? Math.round((midHour.cloudbase_ft || 0)) : 0;
-    
+    const cloudbaseFt = midHour ? Math.round(midHour.cloudbase_ft || 0) : 0;
+
     html += `<div class="day-section">
       <div class="day-header"><span class="day-label">${label}</span> ${dayLabel}</div>
       <div class="summary-cards">
@@ -349,60 +633,40 @@ function renderForecast(forecast) {
       <table class="hour-table">
         <tr><th>Time</th><th>Wind</th><th>Dir</th><th>Gust</th><th>Gradient</th><th>Thermal</th><th>Cloud</th><th>Rain</th><th>Score</th></tr>
         ${day.hours.map(h => {
-          const dt = new Date(h.time);
-          const timeStr = dt.getUTCHours().toString().padStart(2, '0') + ':00';
+          const t = new Date(h.time);
           return `<tr>
-            <td>${timeStr}</td>
-            <td>${h.wind_speed.toFixed(0)}mph</td>
-            <td>${h.wind_dir_str}</td>
-            <td>${h.wind_gusts.toFixed(0)}</td>
+            <td>${t.getUTCHours().toString().padStart(2,'0')}:00</td>
+            <td>${h.wind_speed.toFixed(0)}mph</td><td>${h.wind_dir_str}</td><td>${h.wind_gusts.toFixed(0)}</td>
             <td class="${gradientClass(h.wind_gradient)}">${gradientIcon(h.wind_gradient)} ${h.wind_gradient}(+${h.wind_gradient_diff.toFixed(0)})</td>
             <td>${thermalIcon(h.thermal_rating)} ${h.thermal_rating}</td>
-            <td>${cloudIcon(h.cloud_cover)}</td>
-            <td>${rainStr(h.precipitation, h.precip_probability)}</td>
+            <td>${cloudIcon(h.cloud_cover)}</td><td>${rainStr(h.precipitation, h.precip_probability)}</td>
             <td class="stars">${starsHTML(h.flyability_score)}</td>
           </tr>`;
         }).join('')}
-      </table>
-    </div>`;
+      </table></div>`;
   });
-  
-  // Extended outlook
+
   if (extendedDays.length > 0) {
-    html += `<div class="day-section">
-      <div class="day-header"><span class="day-label">EXTENDED OUTLOOK</span></div>
-      <table class="extended-table">
-        <tr><th>Day</th><th>Wind</th><th>Dir</th><th>Thermal</th><th>Rain</th><th>Score</th></tr>
-        ${extendedDays.map(day => {
-          const dt = new Date(day.date + 'T12:00:00Z');
-          const dayStr = dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-          const avgWind = day.hours.reduce((s, h) => s + h.wind_speed, 0) / day.hours.length;
-          const avgDir = day.hours.reduce((s, h) => s + h.wind_direction, 0) / day.hours.length;
-          const maxPrecip = Math.max(...day.hours.map(h => h.precip_probability));
-          const bestThermal = ['None','Weak','Moderate','Strong','Extreme'][Math.max(...day.hours.map(h => ['None','Weak','Moderate','Strong','Extreme'].indexOf(h.thermal_rating)))];
-          // Top 3 average for score
-          const scores = day.hours.map(h => h.flyability_score).sort((a,b) => b-a);
-          const top3 = scores.slice(0, 3);
-          const avgScore = Math.round(top3.reduce((a,b) => a+b, 0) / top3.length);
-          return `<tr>
-            <td>${dayStr}</td>
-            <td>${avgWind.toFixed(0)}mph</td>
-            <td>${compassDir(avgDir)}</td>
-            <td>${thermalIcon(bestThermal)} ${bestThermal}</td>
-            <td>${maxPrecip.toFixed(0)}%</td>
-            <td class="stars">${starsHTML(avgScore)}</td>
-          </tr>`;
-        }).join('')}
-      </table>
-    </div>`;
+    html += `<div class="day-section"><div class="day-header"><span class="day-label">EXTENDED OUTLOOK</span></div>
+      <table class="extended-table"><tr><th>Day</th><th>Wind</th><th>Dir</th><th>Thermal</th><th>Rain</th><th>Score</th></tr>
+      ${extendedDays.map(day => {
+        const dt = new Date(day.date + 'T12:00:00Z');
+        const dayStr = dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+        const avgWind = day.hours.reduce((s,h)=>s+h.wind_speed,0)/day.hours.length;
+        const avgDir = day.hours.reduce((s,h)=>s+h.wind_direction,0)/day.hours.length;
+        const maxPrecip = Math.max(...day.hours.map(h=>h.precip_probability));
+        const bestThermal = ['None','Weak','Moderate','Strong','Extreme'][Math.max(...day.hours.map(h=>['None','Weak','Moderate','Strong','Extreme'].indexOf(h.thermal_rating)))];
+        const scores = day.hours.map(h=>h.flyability_score).sort((a,b)=>b-a);
+        const avgScore = Math.round(scores.slice(0,3).reduce((a,b)=>a+b,0)/Math.min(3,scores.length));
+        return `<tr><td>${dayStr}</td><td>${avgWind.toFixed(0)}mph</td><td>${compassDir(avgDir)}</td>
+          <td>${thermalIcon(bestThermal)} ${bestThermal}</td><td>${maxPrecip.toFixed(0)}%</td>
+          <td class="stars">${starsHTML(avgScore)}</td></tr>`;
+      }).join('')}</table></div>`;
   }
-  
   panel.innerHTML = html;
 }
 
-function setStatus(msg) {
-  document.getElementById('statusBar').textContent = msg;
-}
+function setStatus(msg) { document.getElementById('statusBar').textContent = msg; }
 
 // === Load all sites overview ===
 async function loadAllSitesOverview() {
@@ -411,16 +675,17 @@ async function loadAllSitesOverview() {
     try {
       const weatherJSON = await fetchWeather(site);
       const siteJSON = JSON.stringify(site);
-      const resultJSON = pgforecastWasm.computeMetrics(weatherJSON, siteJSON);
+      const tuningJSON = getTuningJSON();
+      const resultJSON = pgforecastWasm.computeMetrics(weatherJSON, siteJSON, tuningJSON);
       const metrics = JSON.parse(resultJSON);
       if (!metrics.error) {
         const days = groupByDay(metrics);
         let bestScore = 0;
-        days.slice(0, 3).forEach(d => d.hours.forEach(h => { if (h.flyability_score > bestScore) bestScore = h.flyability_score; }));
-        siteForecasts[site.name] = { site, days, bestScore };
+        days.slice(0,3).forEach(d => d.hours.forEach(h => { if (h.flyability_score > bestScore) bestScore = h.flyability_score; }));
+        siteForecasts[site.name] = { site, days, bestScore, _weatherJSON: weatherJSON };
         updateMarkerColor(site.name, bestScore);
       }
-    } catch (e) { /* skip failed sites */ }
+    } catch (e) { /* skip */ }
     renderSiteList();
     setStatus(`Loaded ${site.name}`);
   }
@@ -430,7 +695,8 @@ async function loadAllSitesOverview() {
 // === Init ===
 initMap();
 renderSiteList();
-loadWasm().then(() => {
+loadWasm().then(async () => {
+  await loadTuning();
   loadAllSitesOverview();
 }).catch(err => {
   document.getElementById('wasmStatus').innerHTML = `❌ WASM error: ${err.message}`;

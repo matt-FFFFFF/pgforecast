@@ -1,0 +1,59 @@
+{
+  "wind": {
+    "ideal_min": 8,
+    "ideal_max": 18,
+    "acceptable_min": 5,
+    "acceptable_max": 22,
+    "dangerous_max": 25,
+    "max_gust_factor": 1.5,
+    "dangerous_gust_factor": 2
+  },
+  "gradient": {
+    "low_threshold": 10,
+    "high_threshold": 20,
+    "high_penalty": -2,
+    "medium_penalty": -1
+  },
+  "thermal": {
+    "cape_weak": 100,
+    "cape_moderate": 300,
+    "cape_strong": 1000,
+    "cape_extreme": 2500,
+    "lapse_rate_bonus": 8
+  },
+  "orographic": {
+    "min_wind_speed": 8,
+    "strong_angle": 15,
+    "moderate_angle": 30,
+    "weak_angle": 45
+  },
+  "cloudbase": {
+    "min_realistic_ft": 200
+  },
+  "scoring": {
+    "base_score": 2.5,
+    "wind_ideal_bonus": 1,
+    "wind_acceptable_bonus": 0.5,
+    "wind_danger_penalty": -2,
+    "wind_high_penalty": -1,
+    "dir_on_bonus": 1.5,
+    "dir_off_penalty": -2,
+    "gust_high_penalty": -1.5,
+    "gust_med_penalty": -0.5,
+    "rain_penalty": -2.5,
+    "rain_prob_penalty": -0.5,
+    "gradient_high_penalty": -1.5,
+    "gradient_med_penalty": -0.5,
+    "cape_bonus": 0.5,
+    "thermal_strong_bonus": 0.5
+  },
+  "xc": {
+    "min_cloudbase_ft": 3000,
+    "good_cloudbase_ft": 4000,
+    "max_wind_speed": 20,
+    "min_wind_speed": 8,
+    "epic_threshold": 7,
+    "high_threshold": 5,
+    "medium_threshold": 3
+  }
+}
