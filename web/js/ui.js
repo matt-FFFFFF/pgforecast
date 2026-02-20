@@ -298,7 +298,7 @@ async function selectSite(name) {
       selectSite._pendingRecenter = null;
       var mapSize = map.getSize();
       // Shift marker from center (50%) to top 25% => move up by 25% of map height
-      var offsetY = -Math.round(mapSize.y * 0.25);
+      var offsetY = Math.round(mapSize.y * 0.25);
       map.panBy([0, offsetY], { animate: true, duration: 0.3 });
     };
     map.once('moveend', selectSite._pendingRecenter);
