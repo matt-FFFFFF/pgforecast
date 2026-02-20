@@ -93,7 +93,7 @@ body {
 
 .layout {
   display: flex;
-  height: calc(100vh - 50px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  height: calc(100vh - 50px - env(safe-area-inset-top, 0px));
 }
 
 /* --- Sidebar overlay (mobile) --- */
@@ -497,6 +497,7 @@ body {
 
 .status-bar {
   padding: 0.4rem 1rem;
+  padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
   background: var(--card);
   border-top: 1px solid var(--border);
   font-size: 0.7rem;
