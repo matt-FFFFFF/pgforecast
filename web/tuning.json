@@ -47,6 +47,49 @@
     "cape_bonus": 0.5,
     "thermal_strong_bonus": 0.5
   },
+  "display": {
+    "wind_strength": {
+      "light": {
+        "rgb": "#4fd1c5",
+        "label": "Light",
+        "icon": "💤"
+      },
+      "moderate": {
+        "rgb": "#48bb78",
+        "label": "Moderate",
+        "icon": "✅"
+      },
+      "fresh": {
+        "rgb": "#ecc94b",
+        "label": "Fresh",
+        "icon": "⚠️"
+      },
+      "strong": {
+        "rgb": "#ed8936",
+        "label": "Strong",
+        "icon": "🟠"
+      },
+      "very_strong": {
+        "rgb": "#f56565",
+        "label": "Very Strong",
+        "icon": "🔴"
+      }
+    },
+    "gradient": {
+      "low": {
+        "rgb": "#48bb78",
+        "icon": "✅"
+      },
+      "medium": {
+        "rgb": "#ecc94b",
+        "icon": "⚠️"
+      },
+      "high": {
+        "rgb": "#f56565",
+        "icon": "🔴"
+      }
+    }
+  },
   "xc": {
     "min_cloudbase_ft": 3000,
     "good_cloudbase_ft": 4000,
