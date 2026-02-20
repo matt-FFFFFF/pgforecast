@@ -685,3 +685,29 @@ body {
   line-height: 1.4;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
+
+/* --- Colour picker in tuning panel --- */
+.color-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.color-input-row input[type="color"] {
+  width: 40px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}
+.color-hex {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.tuning-text {
+  width: 60px;
+  text-align: center;
+  font-size: 1.1rem;
+}
