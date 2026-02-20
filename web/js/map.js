@@ -39,6 +39,7 @@ function initMap() {
   map.on('click', function () {
     if (selectedSite) {
       selectedSite = null;
+      clearMarkerHighlight();
       renderSiteList();
       hideForecastPanel();
     }
@@ -62,5 +63,59 @@ function updateMarkerColor(name, score) {
       fillOpacity: score >= 4 ? 0.9 : 0.7
     });
     marker.setRadius(radii[score] || 6);
+
+    // Sync highlight ring radius if this marker is currently selected
+    if (highlightMarker._prevName === name && highlightMarker._ring) {
+      highlightMarker._ring.setRadius((radii[score] || 6) + 8);
+    }
   }
+}
+
+/**
+ * Highlight the selected marker with a pulsing ring and reset the previous one.
+ * @param {string} name - Site name to highlight.
+ */
+function highlightMarker(name) {
+  // Remove previous highlight
+  if (highlightMarker._ring) {
+    map.removeLayer(highlightMarker._ring);
+    highlightMarker._ring = null;
+  }
+  if (highlightMarker._prevName && markers[highlightMarker._prevName]) {
+    markers[highlightMarker._prevName].setStyle({ weight: 2, color: '#2d3748' });
+  }
+
+  var marker = markers[name];
+  if (!marker) return;
+
+  // Bold the selected marker border
+  marker.setStyle({ weight: 3, color: '#ffffff' });
+
+  // Add a pulsing ring around the selected marker
+  var latlng = marker.getLatLng();
+  highlightMarker._ring = L.circleMarker(latlng, {
+    radius: marker.getRadius() + 8,
+    fillColor: 'transparent',
+    fillOpacity: 0,
+    color: '#ffffff',
+    weight: 2,
+    opacity: 0.6,
+    className: 'marker-pulse'
+  }).addTo(map);
+
+  highlightMarker._prevName = name;
+}
+
+/**
+ * Remove marker highlight (used when deselecting).
+ */
+function clearMarkerHighlight() {
+  if (highlightMarker._ring) {
+    map.removeLayer(highlightMarker._ring);
+    highlightMarker._ring = null;
+  }
+  if (highlightMarker._prevName && markers[highlightMarker._prevName]) {
+    markers[highlightMarker._prevName].setStyle({ weight: 2, color: '#2d3748' });
+  }
+  highlightMarker._prevName = null;
 }

@@ -714,3 +714,12 @@ body {
   text-align: center;
   font-size: 1.1rem;
 }
+
+/* --- Pulsing marker selection ring --- */
+.marker-pulse {
+  animation: marker-pulse 1.5s ease-in-out infinite;
+}
+@keyframes marker-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.2; }
+}
