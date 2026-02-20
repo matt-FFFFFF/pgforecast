@@ -177,75 +177,102 @@ function closeTuning() {
 function renderDisplaySection() {
   if (!activeTuning.display) return '';
 
-  var html = '<div class="tuning-section"><h3>Display — Wind Strength</h3><div class="tuning-grid">';
+  var html = '';
   var ws = activeTuning.display.wind_strength;
   var wsDefault = defaultTuning.display ? defaultTuning.display.wind_strength : {};
 
-  var tiers = ['light', 'moderate', 'fresh', 'strong', 'very_strong'];
-  var tierLabels = { light: 'Light', moderate: 'Moderate', fresh: 'Fresh', strong: 'Strong', very_strong: 'Very Strong' };
+  if (ws) {
+    html += '<div class="tuning-section"><h3>Display — Wind Strength</h3><div class="tuning-grid">';
+    var tiers = ['light', 'moderate', 'fresh', 'strong', 'very_strong'];
+    var tierLabels = { light: 'Light', moderate: 'Moderate', fresh: 'Fresh', strong: 'Strong', very_strong: 'Very Strong' };
 
-  tiers.forEach(function (tier) {
-    if (!ws[tier]) return;
-    var t = ws[tier];
-    var d = (wsDefault[tier]) || {};
-    var label = tierLabels[tier];
+    tiers.forEach(function (tier) {
+      if (!ws[tier]) return;
+      var t = ws[tier];
+      var d = (wsDefault[tier]) || {};
+      var label = tierLabels[tier];
 
-    var rgbChanged = (t.rgb !== d.rgb) ? 'changed' : '';
-    var iconChanged = (t.icon !== d.icon) ? 'changed' : '';
+      var rgbChanged = (t.rgb !== d.rgb) ? 'changed' : '';
+      var iconChanged = (t.icon !== d.icon) ? 'changed' : '';
 
-    html += '<div class="tuning-field">' +
-      '<label>' + label + ' colour</label>' +
-      '<div class="color-input-row">' +
-        '<input type="color" value="' + t.rgb + '"' +
-        ' data-display="wind_strength.' + tier + '.rgb"' +
-        ' class="' + rgbChanged + '" onchange="onDisplayInput(this)" />' +
-        '<span class="color-hex">' + t.rgb + '</span>' +
-      '</div></div>';
+      html += '<div class="tuning-field">' +
+        '<label>' + escapeHTML(label) + ' colour</label>' +
+        '<div class="color-input-row">' +
+          '<input type="color" value="' + escapeAttr(t.rgb) + '"' +
+          ' data-display="wind_strength.' + tier + '.rgb"' +
+          ' class="' + rgbChanged + '" onchange="onDisplayInput(this)" />' +
+          '<span class="color-hex">' + escapeHTML(t.rgb) + '</span>' +
+        '</div></div>';
 
-    html += '<div class="tuning-field">' +
-      '<label>' + label + ' icon</label>' +
-      '<input type="text" value="' + t.icon + '"' +
-      ' data-display="wind_strength.' + tier + '.icon"' +
-      ' class="tuning-text ' + iconChanged + '" onchange="onDisplayInput(this)" />' +
-    '</div>';
-  });
+      html += '<div class="tuning-field">' +
+        '<label>' + escapeHTML(label) + ' icon</label>' +
+        '<input type="text" value="' + escapeAttr(t.icon) + '"' +
+        ' data-display="wind_strength.' + tier + '.icon"' +
+        ' class="tuning-text ' + iconChanged + '" onchange="onDisplayInput(this)" />' +
+      '</div>';
+    });
 
-  html += '</div></div>';
+    html += '</div></div>';
+  }
 
   // Gradient section
-  html += '<div class="tuning-section"><h3>Display — Gradient</h3><div class="tuning-grid">';
   var grad = activeTuning.display.gradient;
   var gradDefault = defaultTuning.display ? defaultTuning.display.gradient : {};
-  var levels = ['low', 'medium', 'high'];
-  var levelLabels = { low: 'Low', medium: 'Medium', high: 'High' };
 
-  levels.forEach(function (level) {
-    if (!grad[level]) return;
-    var g = grad[level];
-    var gd = (gradDefault[level]) || {};
+  if (grad) {
+    html += '<div class="tuning-section"><h3>Display — Gradient</h3><div class="tuning-grid">';
+    var levels = ['low', 'medium', 'high'];
+    var levelLabels = { low: 'Low', medium: 'Medium', high: 'High' };
 
-    var rgbChanged = (g.rgb !== gd.rgb) ? 'changed' : '';
-    var iconChanged = (g.icon !== gd.icon) ? 'changed' : '';
+    levels.forEach(function (level) {
+      if (!grad[level]) return;
+      var g = grad[level];
+      var gd = (gradDefault[level]) || {};
 
-    html += '<div class="tuning-field">' +
-      '<label>' + levelLabels[level] + ' colour</label>' +
-      '<div class="color-input-row">' +
-        '<input type="color" value="' + g.rgb + '"' +
-        ' data-display="gradient.' + level + '.rgb"' +
-        ' class="' + rgbChanged + '" onchange="onDisplayInput(this)" />' +
-        '<span class="color-hex">' + g.rgb + '</span>' +
-      '</div></div>';
+      var rgbChanged = (g.rgb !== gd.rgb) ? 'changed' : '';
+      var iconChanged = (g.icon !== gd.icon) ? 'changed' : '';
 
-    html += '<div class="tuning-field">' +
-      '<label>' + levelLabels[level] + ' icon</label>' +
-      '<input type="text" value="' + g.icon + '"' +
-      ' data-display="gradient.' + level + '.icon"' +
-      ' class="tuning-text ' + iconChanged + '" onchange="onDisplayInput(this)" />' +
-    '</div>';
-  });
+      html += '<div class="tuning-field">' +
+        '<label>' + escapeHTML(levelLabels[level]) + ' colour</label>' +
+        '<div class="color-input-row">' +
+          '<input type="color" value="' + escapeAttr(g.rgb) + '"' +
+          ' data-display="gradient.' + level + '.rgb"' +
+          ' class="' + rgbChanged + '" onchange="onDisplayInput(this)" />' +
+          '<span class="color-hex">' + escapeHTML(g.rgb) + '</span>' +
+        '</div></div>';
 
-  html += '</div></div>';
+      html += '<div class="tuning-field">' +
+        '<label>' + escapeHTML(levelLabels[level]) + ' icon</label>' +
+        '<input type="text" value="' + escapeAttr(g.icon) + '"' +
+        ' data-display="gradient.' + level + '.icon"' +
+        ' class="tuning-text ' + iconChanged + '" onchange="onDisplayInput(this)" />' +
+      '</div>';
+    });
+
+    html += '</div></div>';
+  }
+
   return html;
+}
+
+/**
+ * Escape a string for safe HTML text content.
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHTML(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/**
+ * Escape a string for safe use in an HTML attribute value.
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeAttr(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /**
@@ -257,8 +284,10 @@ function onDisplayInput(element) {
   var path = element.dataset.display.split('.');
   var obj = activeTuning.display;
   for (var i = 0; i < path.length - 1; i++) {
+    if (!obj || typeof obj !== 'object') return;
     obj = obj[path[i]];
   }
+  if (!obj || typeof obj !== 'object') return;
   obj[path[path.length - 1]] = element.value;
 
   // Update hex label for colour inputs
@@ -444,6 +473,8 @@ function importTuning() {
  * @param {Object<string, string>} cachedWeather - Cached weather JSON keyed by site name.
  */
 async function rescoreAll(cachedWeather) {
+  var displayApplied = false;
+
   for (var i = 0; i < SITES.length; i++) {
     var site = SITES[i];
 
@@ -458,10 +489,12 @@ async function rescoreAll(cachedWeather) {
         var days = groupByDay(metrics);
         var bestScore = 0;
 
-        if (result.display && result.wind_thresholds) {
+        // Apply display config once from the first successful result
+        if (!displayApplied && result.display && result.wind_thresholds) {
           displayConfig = result.display;
           windThresholds = result.wind_thresholds;
           applyDisplayConfigCSS(result.display);
+          displayApplied = true;
         }
 
         days.slice(0, 3).forEach(function (day) {
