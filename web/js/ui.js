@@ -242,7 +242,11 @@ function buildWindProfilePopup(h) {
  * Reads from SITES, siteForecasts, and selectedSite globals.
  */
 function renderSiteList() {
-  var html = SITES.map(function (site) {
+  var sortedSites = SITES.slice().sort(function (a, b) {
+    return a.name.localeCompare(b.name);
+  });
+
+  var html = sortedSites.map(function (site) {
     var forecast = siteForecasts[site.name];
     var escapedName = escHtml(site.name);
     var activeClass = (selectedSite === site.name) ? 'active' : '';
