@@ -25,8 +25,8 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
-  height: 100vh; /* fallback for browsers without dvh */
+  height: 100vh;
+  height: 100dvh; /* override for browsers with dvh support */
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -248,7 +248,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 60px;
+  padding-top: calc(60px + env(safe-area-inset-top, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .tuning-panel {
