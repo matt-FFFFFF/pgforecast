@@ -63,6 +63,11 @@ function updateMarkerColor(name, score) {
       fillOpacity: score >= 4 ? 0.9 : 0.7
     });
     marker.setRadius(radii[score] || 6);
+
+    // Sync highlight ring radius if this marker is currently selected
+    if (highlightMarker._prevName === name && highlightMarker._ring) {
+      highlightMarker._ring.setRadius((radii[score] || 6) + 8);
+    }
   }
 }
 
@@ -111,6 +116,6 @@ function clearMarkerHighlight() {
   }
   if (highlightMarker._prevName && markers[highlightMarker._prevName]) {
     markers[highlightMarker._prevName].setStyle({ weight: 2, color: '#2d3748' });
-    highlightMarker._prevName = null;
   }
+  highlightMarker._prevName = null;
 }

@@ -287,12 +287,6 @@ async function selectSite(name) {
   var site = SITES.find(function (s) { return s.name === name; });
   if (!site) return;
 
-  // Cancel any pending recenter handler from a previous selection
-  if (selectSite._pendingRecenter) {
-    map.off('moveend', selectSite._pendingRecenter);
-    selectSite._pendingRecenter = null;
-  }
-
   if (isMobile()) {
     closeSidebar();
   }
