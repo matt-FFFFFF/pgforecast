@@ -287,29 +287,32 @@ async function selectSite(name) {
   var site = SITES.find(function (s) { return s.name === name; });
   if (!site) return;
 
-  // Cancel any pending mobile recenter handler from a previous selection
+  // Cancel any pending recenter handler from a previous selection
   if (selectSite._pendingRecenter) {
     map.off('moveend', selectSite._pendingRecenter);
     selectSite._pendingRecenter = null;
   }
 
-  // On mobile, offset the map so the marker sits in the top 25% of the viewport,
-  // keeping it visible above the forecast panel.
-  // Register handler BEFORE flyTo to avoid race condition.
   if (isMobile()) {
     closeSidebar();
-    selectSite._pendingRecenter = function () {
-      selectSite._pendingRecenter = null;
-      var mapSize = map.getSize();
-      // Shift marker from center (50%) to top 25% of viewport. In Leaflet, positive Y in panBy
-      // pans the map down, which makes the marker appear higher on the screen by 25% of map height.
-      var offsetY = Math.round(mapSize.y * 0.25);
-      map.panBy([0, offsetY], { animate: true, duration: 0.3 });
-    };
-    map.once('moveend', selectSite._pendingRecenter);
   }
 
-  map.flyTo([site.lat, site.lon], 12, { duration: 0.5 });
+  // Fly to the site offset so the marker lands in the top 25% of the map,
+  // keeping it visible above the forecast panel. We calculate the target
+  // point by projecting the site coordinates to pixels, shifting down by
+  // 25% of the map height, then unprojecting back to lat/lng — all at
+  // the target zoom level so it happens in a single flyTo.
+  var targetZoom = 12;
+  var sitePoint = map.project([site.lat, site.lon], targetZoom);
+  var mapSize = map.getSize();
+  var offsetY = Math.round(mapSize.y * 0.25);
+  var targetPoint = L.point(sitePoint.x, sitePoint.y + offsetY);
+  var targetLatLng = map.unproject(targetPoint, targetZoom);
+
+  // Highlight the selected marker
+  highlightMarker(name);
+
+  map.flyTo(targetLatLng, targetZoom, { duration: 0.5 });
 
   showForecastPanel();
 
