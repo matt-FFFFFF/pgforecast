@@ -79,6 +79,10 @@ var TUNING_LABELS = {
     epic_threshold: 'Epic threshold',
     high_threshold: 'High threshold',
     medium_threshold: 'Medium threshold'
+  },
+  display: {
+    _title: 'Display',
+    _nested: true
   }
 };
 
@@ -167,6 +171,111 @@ function closeTuning() {
 }
 
 /**
+ * Render the display config section (wind strength + gradient colours/icons).
+ * @returns {string} HTML string for the display tuning section.
+ */
+function renderDisplaySection() {
+  if (!activeTuning.display) return '';
+
+  var html = '<div class="tuning-section"><h3>Display — Wind Strength</h3><div class="tuning-grid">';
+  var ws = activeTuning.display.wind_strength;
+  var wsDefault = defaultTuning.display ? defaultTuning.display.wind_strength : {};
+
+  var tiers = ['light', 'moderate', 'fresh', 'strong', 'very_strong'];
+  var tierLabels = { light: 'Light', moderate: 'Moderate', fresh: 'Fresh', strong: 'Strong', very_strong: 'Very Strong' };
+
+  tiers.forEach(function (tier) {
+    if (!ws[tier]) return;
+    var t = ws[tier];
+    var d = (wsDefault[tier]) || {};
+    var label = tierLabels[tier];
+
+    var rgbChanged = (t.rgb !== d.rgb) ? 'changed' : '';
+    var iconChanged = (t.icon !== d.icon) ? 'changed' : '';
+
+    html += '<div class="tuning-field">' +
+      '<label>' + label + ' colour</label>' +
+      '<div class="color-input-row">' +
+        '<input type="color" value="' + t.rgb + '"' +
+        ' data-display="wind_strength.' + tier + '.rgb"' +
+        ' class="' + rgbChanged + '" onchange="onDisplayInput(this)" />' +
+        '<span class="color-hex">' + t.rgb + '</span>' +
+      '</div></div>';
+
+    html += '<div class="tuning-field">' +
+      '<label>' + label + ' icon</label>' +
+      '<input type="text" value="' + t.icon + '"' +
+      ' data-display="wind_strength.' + tier + '.icon"' +
+      ' class="tuning-text ' + iconChanged + '" onchange="onDisplayInput(this)" />' +
+    '</div>';
+  });
+
+  html += '</div></div>';
+
+  // Gradient section
+  html += '<div class="tuning-section"><h3>Display — Gradient</h3><div class="tuning-grid">';
+  var grad = activeTuning.display.gradient;
+  var gradDefault = defaultTuning.display ? defaultTuning.display.gradient : {};
+  var levels = ['low', 'medium', 'high'];
+  var levelLabels = { low: 'Low', medium: 'Medium', high: 'High' };
+
+  levels.forEach(function (level) {
+    if (!grad[level]) return;
+    var g = grad[level];
+    var gd = (gradDefault[level]) || {};
+
+    var rgbChanged = (g.rgb !== gd.rgb) ? 'changed' : '';
+    var iconChanged = (g.icon !== gd.icon) ? 'changed' : '';
+
+    html += '<div class="tuning-field">' +
+      '<label>' + levelLabels[level] + ' colour</label>' +
+      '<div class="color-input-row">' +
+        '<input type="color" value="' + g.rgb + '"' +
+        ' data-display="gradient.' + level + '.rgb"' +
+        ' class="' + rgbChanged + '" onchange="onDisplayInput(this)" />' +
+        '<span class="color-hex">' + g.rgb + '</span>' +
+      '</div></div>';
+
+    html += '<div class="tuning-field">' +
+      '<label>' + levelLabels[level] + ' icon</label>' +
+      '<input type="text" value="' + g.icon + '"' +
+      ' data-display="gradient.' + level + '.icon"' +
+      ' class="tuning-text ' + iconChanged + '" onchange="onDisplayInput(this)" />' +
+    '</div>';
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+/**
+ * Handle a display config input change.
+ * Updates the active tuning display value.
+ * @param {HTMLInputElement} element - The input element that changed.
+ */
+function onDisplayInput(element) {
+  var path = element.dataset.display.split('.');
+  var obj = activeTuning.display;
+  for (var i = 0; i < path.length - 1; i++) {
+    obj = obj[path[i]];
+  }
+  obj[path[path.length - 1]] = element.value;
+
+  // Update hex label for colour inputs
+  if (element.type === 'color') {
+    var hex = element.parentElement.querySelector('.color-hex');
+    if (hex) hex.textContent = element.value;
+  }
+
+  var defaultObj = defaultTuning.display;
+  for (var j = 0; j < path.length - 1; j++) {
+    defaultObj = defaultObj ? defaultObj[path[j]] : undefined;
+  }
+  var isChanged = !defaultObj || (element.value !== defaultObj[path[path.length - 1]]);
+  element.classList.toggle('changed', isChanged);
+}
+
+/**
  * Render the tuning panel HTML with all parameter fields.
  * Each field shows its current value and highlights if changed from default.
  */
@@ -176,6 +285,13 @@ function renderTuningPanel() {
 
   for (var section in TUNING_LABELS) {
     var labels = TUNING_LABELS[section];
+
+    // Handle nested display config separately
+    if (labels._nested) {
+      html += renderDisplaySection();
+      continue;
+    }
+
     html += '<div class="tuning-section"><h3>' + labels._title + '</h3><div class="tuning-grid">';
 
     for (var key in labels) {
@@ -338,8 +454,15 @@ async function rescoreAll(cachedWeather) {
       );
 
       if (!result.error) {
-        var days = groupByDay(result);
+        var metrics = result.metrics || result;
+        var days = groupByDay(metrics);
         var bestScore = 0;
+
+        if (result.display && result.wind_thresholds) {
+          displayConfig = result.display;
+          windThresholds = result.wind_thresholds;
+          applyDisplayConfigCSS(result.display);
+        }
 
         days.slice(0, 3).forEach(function (day) {
           day.hours.forEach(function (hour) {
@@ -359,7 +482,7 @@ async function rescoreAll(cachedWeather) {
         updateMarkerColor(site.name, bestScore);
       }
     } catch (e) {
-      // Silently skip failed sites
+      console.error('Failed to rescore ' + site.name + ':', e);
     }
 
     renderSiteList();
