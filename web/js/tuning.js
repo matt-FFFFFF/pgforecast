@@ -175,10 +175,10 @@ function closeTuning() {
  * @returns {string} HTML string for the display tuning section.
  */
 function renderDisplaySection() {
-  // Fall back to global displayConfig if tuning doesn't include display yet
+  // Fall back to defaultTuning.display if tuning doesn't include display yet
   // (e.g. user has old tuning cached in localStorage)
-  if (!activeTuning.display && typeof displayConfig === 'object' && displayConfig) {
-    activeTuning.display = JSON.parse(JSON.stringify(displayConfig));
+  if (!activeTuning.display && typeof defaultTuning.display === 'object' && defaultTuning.display) {
+    activeTuning.display = JSON.parse(JSON.stringify(defaultTuning.display));
   }
   if (!activeTuning.display) return '';
 
